@@ -1,0 +1,56 @@
+{
+  "expo": {
+    "name": "supa-drive",
+    "slug": "supa-drive",
+    "version": "1.0.0",
+    "scheme": "supa-drive",
+    "orientation": "portrait",
+    "icon": "./assets/supa-drive.png",
+    "userInterfaceStyle": "dark",
+    "splash": {
+      "image": "./assets/supa-drive.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
+    "ios": {
+      "supportsTablet": true
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#E6F4FE",
+        "foregroundImage": "./assets/supa-drive.png",
+        "backgroundImage": "./assets/supa-drive.png",
+        "monochromeImage": "./assets/supa-drive.png"
+      },
+      "package": "com.markondes.supadrive"
+    },
+    "web": {
+      "favicon": "./assets/supa-drive.png"
+    },
+    "plugins": [
+      "expo-web-browser",
+      "@react-native-google-signin/google-signin",
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/supa-drive.png",
+          "color": "#FF6B6B",
+          "sounds": [
+            "./assets/notification-sound.wav"
+          ],
+          "defaultChannel": "default"
+        }
+      ]
+    ],
+    "notification": {
+      "icon": "./assets/supa-drive.png",
+      "color": "#FF6B6B"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "dffbf326-a416-413d-9a3b-5f06dbdf9d28"
+      }
+    },
+    "owner": "markondes"
+  }
+}
