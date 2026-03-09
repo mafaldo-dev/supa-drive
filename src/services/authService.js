@@ -1,5 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import swal from 'sweetalert2';
+import { Alert } from 'react-native';
 import { BACKEND_URL } from '../utils/constants';
 import { STORAGE_KEYS } from '../utils/storage';
 
@@ -37,11 +37,11 @@ export const handleGoogleToken = async (token, userData, setLoading, onLogin) =>
 
       onLogin(completeUserData);
     } else {
-      swal.fire('Erro', 'Falha ao autenticar. Tente novamente.', 'error');
+      Alert.alert('Erro', 'Falha ao autenticar. Tente novamente.', 'error');
     }
   } catch (err) {
     console.error('Erro de autenticação:', err);
-    swal.fire('Erro de conexão', 'Verifique sua internet e tente novamente.', 'error');
+    Alert.alert('Erro de conexão', 'Verifique sua internet e tente novamente.', 'error');
   } finally {
     setLoading(false);
   }

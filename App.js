@@ -5,11 +5,11 @@ import {
   Text,
   TouchableOpacity,
   ActivityIndicator,
+  Alert
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { MaterialIcons, FontAwesome5 } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import swal from 'sweetalert2';
 
 import * as NavigationBar from 'expo-navigation-bar'
 
@@ -34,7 +34,7 @@ import PaymentScreen from './src/screens/PaymentScreen';
 import { checkSavedLogin, saveUserPlan } from './src/services/authService';
 import { useGlobalStyles } from './src/styles/useGlobalStyles';
 import { useTheme } from './src/context/ThemeContext';
-import { usePreferencias } from './src/hooks/usePreferencias';
+import { useDriverSettings } from './src/hooks/useSubscription';
 
 export default function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -49,16 +49,16 @@ export default function App() {
   const [userPlan, setUserPlan] = useState('free');
   const [showPlanModal, setShowPlanModal] = useState(false);
   const [showPaymentScreen, setShowPaymentScreen] = useState(false);
-  const { preferences } = usePreferencias();
+  const { settings: preferences, refreshSettings } = useDriverSettings();
 
   useEffect(() => {
     checkSavedLogin(setIsLoggedIn, setUser, setUserPlan, setCheckingAuth);
   }, []);
 
   useEffect(() => {
-  	NavigationBar.setVisibilityAsync("hidden")
-	NavigationBar.setBehaviorAsync("overlay-swipe")
-  },[])
+    NavigationBar.setVisibilityAsync("hidden")
+    NavigationBar.setBehaviorAsync("overlay-swipe")
+  }, [])
 
   useEffect(() => {
     let interval;
@@ -117,7 +117,7 @@ export default function App() {
   const handleSelectPlan = async (planId) => {
     await saveUserPlan(planId, setUserPlan);
     setShowPlanModal(false);
-    swal.fire('Plano alterado', `Agora você está no plano ${planId === 'premium' ? 'Premium' : 'Gratuito'}`, 'success');
+    Alert.alert('Plano alterado', `Agora você está no plano ${planId === 'premium' ? 'Premium' : 'Gratuito'}`, 'success');
   };
 
   const { colors } = useTheme();
@@ -141,7 +141,7 @@ export default function App() {
         <PaymentScreen
           navigation={{ goBack: () => setShowPaymentScreen(false) }}
           onPaymentSuccess={(payment) => {
-            swal.fire('Pagamento Registrado', 'Seu pagamento foi registrado. Premium ativado!', 'success');
+            Alert.alert('Pagamento Registrado', 'Seu pagamento foi registrado. Premium ativado!', 'success');
             setUserPlan('premium');
             setShowPaymentScreen(false);
             saveUserPlan('premium', setUserPlan);
@@ -157,7 +157,7 @@ export default function App() {
       case 'configuracoes': return <ConfiguracoesScreen />;
       case 'suporte': return <SuporteScreen />;
       case 'conta': return <ContaScreen user={user} userPlan={userPlan} />;
-      case  'preferencias': return <PreferenciasScreen navigation={{ goBack: () => setCurrentScreen('home')}} />
+      case 'preferencias': return <PreferenciasScreen navigation={{ goBack: () => setCurrentScreen('home') }} />
       default: return (
         <HomeScreen
           user={user}
@@ -166,6 +166,7 @@ export default function App() {
           setIsFloatingActive={setIsFloatingActive}
           setShowFloatingButton={setShowFloatingButton}
           setShowPlanModal={setShowPlanModal}
+          onRefresh={refreshSettings}
           preferences={preferences}
           onNavigateToPreferences={() => setCurrentScreen('preferencias')}
         />

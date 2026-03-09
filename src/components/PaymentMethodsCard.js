@@ -1,6 +1,6 @@
-import React, { useState, useMemo } from 'react';
+import React, { useMemo } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import { MaterialIcons } from '@expo/vector-icons';
+
 import { useTheme } from '../context/ThemeContext';
 
 const PaymentMethodsCard = ({ onSelectMethod, selectedMethod }) => {
@@ -57,13 +57,13 @@ const PaymentMethodsCard = ({ onSelectMethod, selectedMethod }) => {
     {
       id: 'pix',
       label: 'PIX',
-      icon: '💳',
+      icon: '💰',
       description: 'Instantâneo',
     },
     {
       id: 'credit_card',
       label: 'Cartão',
-      icon: '💰',
+      icon: '💳',
       description: 'Crédito/Débito',
     },
   ];

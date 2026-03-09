@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, Switch } from 'react-native';
-import swal from 'sweetalert2';
+import { View, Text, Switch,Alert } from 'react-native';
+
 import { useGlobalStyles } from '../styles/useGlobalStyles';
 import { useTheme } from '../context/ThemeContext';
 import { getNotificationStatus, setNotificationStatus } from '../services/notificationService';
@@ -28,7 +28,7 @@ const ConfiguracoesScreen = () => {
     
     if (!success) {
       setNotificationsEnabled(!value);
-      swal.fire(
+      Alert.alert(
         'Permissão Negada',
         'Você precisa conceder permissão para receber notificações.',
         'warning'

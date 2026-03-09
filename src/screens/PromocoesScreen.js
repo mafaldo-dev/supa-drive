@@ -11,11 +11,10 @@ import {
 } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useTheme } from '../context/ThemeContext';
-import { useGlobalStyles } from '../styles/useGlobalStyles';
 import { usePromotions, usePlans } from '../hooks/useSubscription';
 
 const PromocoesScreen = () => {
-  const globalStyles = useGlobalStyles();
+
   const { colors } = useTheme();
   const { promotions, isLoading: promotionsLoading, applyPromotionCode } = usePromotions();
   const { plans } = usePlans();

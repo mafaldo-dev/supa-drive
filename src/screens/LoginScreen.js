@@ -5,16 +5,16 @@ import {
   TouchableOpacity,
   Animated,
   ActivityIndicator,
+  Alert
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { FontAwesome5 } from '@expo/vector-icons';
 import { GoogleSignin } from '@react-native-google-signin/google-signin';
-import swal from 'sweetalert2';
 import { useLoginStyles } from '../styles/loginStyles';
 import { useTheme } from '../context/ThemeContext';
 import { WEB_CLIENT_ID } from '../utils/constants';
 import { handleGoogleToken } from '../services/authService';
-import { useGlobalStyles } from '../styles/useGlobalStyles'
+
 
 
 const LoginScreen = ({ onLogin }) => {
@@ -47,10 +47,8 @@ const LoginScreen = ({ onLogin }) => {
       const token = userInfo.data?.idToken || userInfo.idToken;
       const userData = userInfo.data?.user || userInfo.user;
       
-      console.log('Dados completos do Google:', JSON.stringify(userInfo, null, 2)); // Debug
-      
       if (!token) {
-        swal.fire('Erro', 'Token não encontrado.', 'error');
+        Alert.alert('Erro', 'Token não encontrado.', 'error');
         setLoading(false);
         return;
       }
@@ -68,8 +66,7 @@ const LoginScreen = ({ onLogin }) => {
       await handleGoogleToken(token, googleUserData, setLoading, onLogin);
       
     } catch (error) {
-      console.log('Erro detalhado:', JSON.stringify(error, null, 2));
-      swal.fire('Erro', 'Falha no login com Google.', 'error');
+      Alert.alert('Erro', 'Falha no login com Google.', 'error');
       setLoading(false);
     }
   };

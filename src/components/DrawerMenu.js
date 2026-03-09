@@ -6,9 +6,9 @@ import {
   Animated,
   ScrollView,
   Image,
+  Alert
 } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
-import swal from 'sweetalert2';
 import { useDrawerStyles } from '../styles/drawerStyles';
 import { width, APP_VERSION } from '../utils/constants';
 import { logoutUser } from '../services/authService';
@@ -46,7 +46,7 @@ const DrawerMenu = ({ visible, onClose, onNavigate, user, userPlan }) => {
   ];
 
   const handleLogout = () => {
-    swal.fire({
+    Alert.alert({
       title: 'Sair',
       text: 'Deseja sair da sua conta?',
       icon: 'warning',

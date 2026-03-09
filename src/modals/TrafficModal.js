@@ -62,7 +62,7 @@ const TrafficModal = ({ visible, onClose, currentRide }) => {
                 <TouchableOpacity style={[globalStyles.modalButton, globalStyles.declineButton]} onPress={onClose}>
                   <Text style={globalStyles.declineButtonText}>Recusar</Text>
                 </TouchableOpacity>
-                <TouchableOpacity style={[globalStyles.modalButton, globalStyles.acceptButton]} onPress={() => { onClose(); swal.fire('Sucesso!', 'Corrida aceita!', 'success'); }}>
+                <TouchableOpacity style={[globalStyles.modalButton, globalStyles.acceptButton]} onPress={() => { onClose(); Alert.alert('Sucesso!', 'Corrida aceita!', 'success'); }}>
                   <Text style={globalStyles.acceptButtonText}>Aceitar</Text>
                 </TouchableOpacity>
               </View>

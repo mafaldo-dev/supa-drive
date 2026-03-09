@@ -1,6 +1,6 @@
 import { useState, useEffect, useContext } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { subscriptionService } from '../services/apiService';
+import { subscriptionService, planService } from '../services/apiService';
 import { STORAGE_KEYS } from '../utils/storage';
 
 // Hook para gerenciar assinatura
@@ -44,7 +44,7 @@ export const usePlans = () => {
   const loadPlans = async () => {
     try {
       setIsLoading(true);
-      const plansData = await subscriptionService.getPlans();
+      const plansData = await planService.getPlans();
       setPlans(plansData);
     } catch (error) {
       console.error('Erro ao carregar planos:', error);

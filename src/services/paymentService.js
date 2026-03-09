@@ -1,20 +1,17 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { paymentService as apiPaymentService } from './apiService';
+import { paymentService as apiPaymentService, subscriptionService } from './apiService'
 
 const PAYMENT_KEY = '@motoristapro:payments';
 const SUBSCRIPTION_KEY = '@motoristapro:subscription';
 
 // Constantes atualizadas para os planos do backend
 export const PLAN_PRICES = {
-  1: { monthly: 29.90, yearly: 299.90 }, // Básico
-  2: { monthly: 59.90, yearly: 599.90 }, // Profissional
-  3: { monthly: 99.90, yearly: 999.90 }  // Premium
+  1: { monthly: 12.90, yearly: 154.80 },
+
 };
 
 export const PLAN_TYPES = {
-  BASIC: 1,
-  PROFESSIONAL: 2,
-  PREMIUM: 3
+  PREMIUM: 1
 };
 
 export const PAYMENT_METHODS = {
@@ -25,10 +22,10 @@ export const PAYMENT_METHODS = {
 export const createPayment = async (paymentData) => {
   try {
     // Primeiro criar assinatura se não existir
-    let subscription = await apiPaymentService.getUserSubscription();
+    let subscription = await subscriptionService.getUserSubscription();
 
     if (!subscription || subscription.status !== 'active') {
-      subscription = await apiPaymentService.createSubscription(paymentData.planId);
+      subscription = await subscriptionService.createSubscription(paymentData.planId);
       if (!subscription) {
         throw new Error('Erro ao criar assinatura');
       }
@@ -88,7 +85,7 @@ export const saveSubscription = async (subscriptionData) => {
       startDate: new Date().toISOString(),
       planType: PREMIUM_PLAN_TYPE,
       price: PREMIUM_PLAN_PRICE,
-      autoRenew: false, // Não automático conforme solicitado
+      autoRenew: false,
     };
 
     await AsyncStorage.setItem(SUBSCRIPTION_KEY, JSON.stringify(subscription));
@@ -110,7 +107,6 @@ export const getSubscription = async () => {
 };
 
 export const generatePixQRCode = (amount, orderId) => {
-  // Simulated PIX QR Code - in production, integrate with real PIX API
   return {
     type: 'PIX',
     amount: amount,

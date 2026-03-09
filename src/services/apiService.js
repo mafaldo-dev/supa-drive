@@ -54,7 +54,7 @@ export const subscriptionService = {
     }
   },
 
-  getUserSubscription: async () => {
+getUserSubscription: async () => {
     try {
       const driverId = await AsyncStorage.getItem(STORAGE_KEYS.DRIVER_ID);
       const response = await fetch(`${BACKEND_URL}/api/subscriptions/driver/${driverId}`, {
@@ -87,7 +87,8 @@ export const subscriptionService = {
       const response = await fetch(`${BACKEND_URL}/api/driver/profit/${driverId}`, {
         headers: await getAuthHeaders()
       });
-      return await response.json();
+      const text = await response.text();
+      return JSON.parse(text);
     } catch (error) {
       console.error('Erro ao buscar configurações:', error);
       return null;

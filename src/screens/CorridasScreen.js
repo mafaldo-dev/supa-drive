@@ -11,12 +11,10 @@ import {
 } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useTheme } from '../context/ThemeContext';
-import { useGlobalStyles } from '../styles/useGlobalStyles';
 import { useSubscription } from '../hooks/useSubscription';
 import { rideService } from '../services/apiService';
 
 const CorridasScreen = () => {
-  const globalStyles = useGlobalStyles();
   const { colors } = useTheme();
   const { isPremium } = useSubscription();
 

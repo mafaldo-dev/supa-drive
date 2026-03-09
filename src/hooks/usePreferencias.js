@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import swal from 'sweetalert2';
+import { Alert } from 'react-native';
 import { loadPreferences, savePreferences, DEFAULT_PREFERENCES } from '../services/preferenciasService.js';
 
 export const usePreferencias = () => {
@@ -34,9 +34,9 @@ export const usePreferencias = () => {
     if (success) {
       setOriginalPreferences(preferences);
       setIsEditing(false);
-      swal.fire('Sucesso', 'Preferências salvas com sucesso!', 'success');
+      Alert.alert('Sucesso', 'Preferências salvas com sucesso!', 'success');
     } else {
-      swal.fire('Erro', 'Não foi possível salvar as preferências.', 'error');
+      Alert.alert('Erro', 'Não foi possível salvar as preferências.', 'error');
     }
   };
 

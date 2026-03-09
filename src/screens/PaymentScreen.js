@@ -11,13 +11,12 @@ import {
   Clipboard,
 } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
-import { useGlobalStyles } from '../styles/useGlobalStyles';
+import { formatCurrency } from '../utils/helpers'
 import { useTheme } from '../context/ThemeContext';
 import PaymentMethodsCard from '../components/PaymentMethodsCard';
-import { PREMIUM_PLAN_PRICE, PAYMENT_METHODS, createPayment, generatePixQRCode } from '../services/paymentService';
+import { PLAN_PRICE, PAYMENT_METHODS, createPayment, generatePixQRCode, PLAN_PRICES } from '../services/paymentService';
 
 const PaymentScreen = ({ navigation, onPaymentSuccess }) => {
-  const globalStyles = useGlobalStyles();
   const { colors } = useTheme();
   const [selectedMethod, setSelectedMethod] = useState(null);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -188,7 +187,7 @@ const PaymentScreen = ({ navigation, onPaymentSuccess }) => {
     }
 
     if (selectedMethod === PAYMENT_METHODS.PIX) {
-      const pix = generatePixQRCode(PREMIUM_PLAN_PRICE, `SUPA${Date.now()}`);
+      const pix = generatePixQRCode(PLAN_PRICES[1] ? PLAN_PRICES[1].monthly : PLAN_PRICE, `SUPA${Date.now()}`);
       setPixData(pix);
     }
   };
@@ -211,7 +210,7 @@ const PaymentScreen = ({ navigation, onPaymentSuccess }) => {
         
         const paymentResult = await createPayment({
           method: selectedMethod,
-          amount: PREMIUM_PLAN_PRICE,
+          amount: PLAN_PRICES[1] ? PLAN_PRICES[1].monthly : PLAN_PRICE,
           description: 'Plano Premium Supa Drive',
           pixCode: pixData.code
         });
@@ -229,7 +228,7 @@ const PaymentScreen = ({ navigation, onPaymentSuccess }) => {
         // Credit card payment
         const result = await createPayment({
           method: selectedMethod,
-          amount: PREMIUM_PLAN_PRICE,
+          amount: PLAN_PRICES[1] ? PLAN_PRICES[1].monthly : PLAN_PRICE,
           description: 'Plano Premium Supa Drive'
         });
 
@@ -268,7 +267,7 @@ const PaymentScreen = ({ navigation, onPaymentSuccess }) => {
         <View style={styles.planCard}>
           <Text style={styles.planTitle}>Plano Premium</Text>
           <Text style={styles.planPrice}>
-            R$ {PREMIUM_PLAN_PRICE.toFixed(2)}
+              {PLAN_PRICES[1] ? formatCurrency(PLAN_PRICES[1].monthly) : formatCurrency(PLAN_PRICE)}
             <Text style={styles.planSubtitle}>/mês</Text>
           </Text>
         </View>
@@ -304,7 +303,7 @@ const PaymentScreen = ({ navigation, onPaymentSuccess }) => {
             ) : (
               <>
                 <Text style={styles.pixTitle}>QR Code PIX</Text>
-                <Text style={styles.pixAmount}>R$ {PREMIUM_PLAN_PRICE.toFixed(2)}</Text>
+                <Text style={styles.pixAmount}>R$ {PLAN_PRICES[1] ? PLAN_PRICES[1].monthly.toFixed(2) : PLAN_PRICE.toFixed(2)}</Text>
                 {pixData.qrCodeBase64 && (
                   <Image
                     source={{ uri: `data:image/png;base64,${pixData.qrCodeBase64}` }}
@@ -357,7 +356,7 @@ const PaymentScreen = ({ navigation, onPaymentSuccess }) => {
             <>
               <MaterialIcons name="check-circle" size={20} color="#FFFFFF" />
               <Text style={styles.paymentButtonText}>
-                Pagar R$ {PREMIUM_PLAN_PRICE.toFixed(2)}
+                Pagar R$ {formatCurrency(PLAN_PRICES[1] ? PLAN_PRICES[1].monthly : PLAN_PRICE)}
               </Text>
             </>
           )}
