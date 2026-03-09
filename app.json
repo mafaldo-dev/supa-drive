@@ -29,18 +29,7 @@
     },
     "plugins": [
       "expo-web-browser",
-      "@react-native-google-signin/google-signin",
-      [
-        "expo-notifications",
-        {
-          "icon": "./assets/supa-drive.png",
-          "color": "#FF6B6B",
-          "sounds": [
-            "./assets/notification-sound.wav"
-          ],
-          "defaultChannel": "default"
-        }
-      ]
+      "@react-native-google-signin/google-signin"
     ],
     "notification": {
       "icon": "./assets/supa-drive.png",
@@ -49,8 +38,16 @@
     "extra": {
       "eas": {
         "projectId": "dffbf326-a416-413d-9a3b-5f06dbdf9d28"
-      }
+      },
+      "BACKEND_URL": "https://backend-supa-drive.onrender.com",
+      "WEB_CLIENT_ID": "9376164532-bc5fuh64gsfs6itm3rnhmt81sd9c5dq3.apps.googleusercontent.com"
     },
-    "owner": "markondes"
+    "owner": "markondes",
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/dffbf326-a416-413d-9a3b-5f06dbdf9d28"
+    }
   }
 }

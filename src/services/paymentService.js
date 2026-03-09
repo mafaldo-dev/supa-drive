@@ -1,11 +1,21 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { paymentService as apiPaymentService } from './apiService';
 
 const PAYMENT_KEY = '@motoristapro:payments';
 const SUBSCRIPTION_KEY = '@motoristapro:subscription';
 
-export const PREMIUM_PLAN_PRICE = 12.90;
-export const PREMIUM_PLAN_TYPE = 'premium';
-export const FREE_PLAN_TYPE = 'free';
+// Constantes atualizadas para os planos do backend
+export const PLAN_PRICES = {
+  1: { monthly: 29.90, yearly: 299.90 }, // Básico
+  2: { monthly: 59.90, yearly: 599.90 }, // Profissional
+  3: { monthly: 99.90, yearly: 999.90 }  // Premium
+};
+
+export const PLAN_TYPES = {
+  BASIC: 1,
+  PROFESSIONAL: 2,
+  PREMIUM: 3
+};
 
 export const PAYMENT_METHODS = {
   PIX: 'pix',
@@ -14,17 +24,41 @@ export const PAYMENT_METHODS = {
 
 export const createPayment = async (paymentData) => {
   try {
+    // Primeiro criar assinatura se não existir
+    let subscription = await apiPaymentService.getUserSubscription();
+
+    if (!subscription || subscription.status !== 'active') {
+      subscription = await apiPaymentService.createSubscription(paymentData.planId);
+      if (!subscription) {
+        throw new Error('Erro ao criar assinatura');
+      }
+    }
+
+    // Criar intenção de pagamento
+    const paymentIntent = await apiPaymentService.createPaymentIntent(
+      subscription.id,
+      paymentData.method,
+      paymentData.billingType || 'monthly'
+    );
+
+    if (!paymentIntent) {
+      throw new Error('Erro ao criar intenção de pagamento');
+    }
+
     const payment = {
-      id: Date.now().toString(),
-      amount: PREMIUM_PLAN_PRICE,
+      id: paymentIntent.payment_id || Date.now().toString(),
+      subscriptionId: subscription.id,
+      amount: paymentIntent.amount,
       method: paymentData.method,
       timestamp: new Date().toISOString(),
       status: 'pending',
-      planType: PREMIUM_PLAN_TYPE,
+      planId: paymentData.planId,
+      billingType: paymentData.billingType || 'monthly',
+      clientSecret: paymentIntent.client_secret,
       ...paymentData,
     };
 
-    // Save payment record
+    // Save payment record locally
     const payments = await AsyncStorage.getItem(PAYMENT_KEY);
     const paymentHistory = payments ? JSON.parse(payments) : [];
     paymentHistory.push(payment);

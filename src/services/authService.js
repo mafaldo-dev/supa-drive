@@ -12,12 +12,12 @@ export const handleGoogleToken = async (token, userData, setLoading, onLogin) =>
       body: JSON.stringify({ token }),
     });
     const data = await res.json();
-    
+
     if (data.token) {
       // Salva todos os dados do usuário
       await AsyncStorage.setItem(STORAGE_KEYS.JWT_TOKEN, data.token);
       await AsyncStorage.setItem(STORAGE_KEYS.DRIVER_ID, String(data.driver_id));
-      
+
       // Salva os dados do perfil do Google
       if (userData) {
         await AsyncStorage.setItem(STORAGE_KEYS.USER_NAME, userData.givenName || userData.name || '');
@@ -25,7 +25,7 @@ export const handleGoogleToken = async (token, userData, setLoading, onLogin) =>
         await AsyncStorage.setItem(STORAGE_KEYS.USER_PHOTO, userData.photo || '');
         await AsyncStorage.setItem(STORAGE_KEYS.USER_FULL_NAME, userData.name || userData.givenName || '');
       }
-      
+
       // Combina os dados do backend com os dados do Google
       const completeUserData = {
         ...data,
@@ -34,12 +34,13 @@ export const handleGoogleToken = async (token, userData, setLoading, onLogin) =>
         photo: userData?.photo || null,
         givenName: userData?.givenName || null,
       };
-      
+
       onLogin(completeUserData);
     } else {
       swal.fire('Erro', 'Falha ao autenticar. Tente novamente.', 'error');
     }
   } catch (err) {
+    console.error('Erro de autenticação:', err);
     swal.fire('Erro de conexão', 'Verifique sua internet e tente novamente.', 'error');
   } finally {
     setLoading(false);

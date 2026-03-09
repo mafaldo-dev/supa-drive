@@ -11,11 +11,13 @@ import { FontAwesome5, MaterialIcons } from '@expo/vector-icons';
 import swal from 'sweetalert2';
 import { useGlobalStyles } from '../styles/useGlobalStyles';
 import { useTheme } from '../context/ThemeContext';
+import { useSubscription } from '../hooks/useSubscription';
 import { useMemo } from 'react';
 
 const HomeScreen = ({ user, userPlan, isFloatingActive, setIsFloatingActive, setShowFloatingButton, setShowPlanModal, preferences, onNavigateToPreferences }) => {
   const globalStyles = useGlobalStyles();
   const { colors } = useTheme();
+  const { isPremium, subscription } = useSubscription();
 
   const styles = useMemo(() => StyleSheet.create({
     preferencesCard: {
@@ -109,6 +111,54 @@ const HomeScreen = ({ user, userPlan, isFloatingActive, setIsFloatingActive, set
       <View style={globalStyles.welcomeCard}>
         <Text style={globalStyles.welcomeTitle}>Olá, {user?.name?.split(' ')[0] || 'Motorista'}!</Text>
         <Text style={globalStyles.welcomeSubtitle}>Bom trabalho hoje 🚗</Text>
+      </View>
+
+      {/* Status da Assinatura */}
+      <View style={[styles.preferencesCard, {
+        backgroundColor: isPremium ? colors.accentLight : colors.cardBackground,
+        borderWidth: 1,
+        borderColor: isPremium ? colors.accent : colors.border
+      }]}>
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+          <Text style={[styles.preferencesTitle, { marginBottom: 0 }]}>
+            {isPremium ? '🎉 Plano Premium Ativo' : '🚀 Faça Upgrade'}
+          </Text>
+          <View style={{
+            backgroundColor: isPremium ? '#4CAF50' : colors.accent,
+            borderRadius: 12,
+            paddingHorizontal: 8,
+            paddingVertical: 4
+          }}>
+            <Text style={{ color: '#FFFFFF', fontSize: 12, fontWeight: '600' }}>
+              {isPremium ? 'ATIVO' : 'GRÁTIS'}
+            </Text>
+          </View>
+        </View>
+
+        {isPremium ? (
+          <Text style={{ fontSize: 14, color: colors.textSecondary }}>
+            Aproveite todos os recursos premium disponíveis no app!
+          </Text>
+        ) : (
+          <View>
+            <Text style={{ fontSize: 14, color: colors.textSecondary, marginBottom: 12 }}>
+              Desbloqueie análises avançadas, relatórios detalhados e muito mais!
+            </Text>
+            <TouchableOpacity
+              style={{
+                backgroundColor: colors.accent,
+                borderRadius: 8,
+                padding: 12,
+                alignItems: 'center'
+              }}
+              onPress={() => setShowPlanModal(true)}
+            >
+              <Text style={{ color: '#FFFFFF', fontWeight: '600' }}>
+                Ver Planos Premium
+              </Text>
+            </TouchableOpacity>
+          </View>
+        )}
       </View>
 
       <View style={globalStyles.statsCard}>
