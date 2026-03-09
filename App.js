@@ -30,6 +30,9 @@ import SuporteScreen from './src/screens/SuporteScreen';
 import ContaScreen from './src/screens/ContaScreen';
 import PreferenciasScreen from './src/screens/PreferenciasScreen';
 import PaymentScreen from './src/screens/PaymentScreen';
+import JornadaScreen from './src/screens/JornadaScreen';
+import ResumoSemanalScreen from './src/screens/ResumoSemanalScreen';
+
 // Serviços e Utils
 import { checkSavedLogin, saveUserPlan } from './src/services/authService';
 import { useGlobalStyles } from './src/styles/useGlobalStyles';
@@ -158,6 +161,9 @@ export default function App() {
       case 'suporte': return <SuporteScreen />;
       case 'conta': return <ContaScreen user={user} userPlan={userPlan} />;
       case 'preferencias': return <PreferenciasScreen navigation={{ goBack: () => setCurrentScreen('home') }} />
+      case 'jornada': return <JornadaScreen preferences={preferences} />;
+      case 'resumo': return <ResumoSemanalScreen preferences={preferences} />;
+    
       default: return (
         <HomeScreen
           user={user}
