@@ -19,6 +19,7 @@ import FloatingButton from './src/components/FloatingButton';
 import FloatingTimer from './src/components/FloatingTimer';
 import TrafficModal from './src/modals/TrafficModal';
 import PlanModal from './src/modals/PlanModal';
+import PixPaymentScreen from './src/screens/PixPaymentScreen';
 
 // Telas
 import LoginScreen from './src/screens/LoginScreen';
@@ -30,7 +31,6 @@ import ConfiguracoesScreen from './src/screens/ConfiguracoesScreen';
 import SuporteScreen from './src/screens/SuporteScreen';
 import ContaScreen from './src/screens/ContaScreen';
 import PreferenciasScreen from './src/screens/PreferenciasScreen';
-import PaymentScreen from './src/screens/PaymentScreen';
 import JornadaScreen from './src/screens/JornadaScreen';
 import ResumoSemanalScreen from './src/screens/ResumoSemanalScreen';
 
@@ -166,17 +166,14 @@ export default function App() {
 
   const renderScreen = () => {
     if (showPaymentScreen) {
-      return (
-        <PaymentScreen
-          navigation={{ goBack: () => setShowPaymentScreen(false) }}
-          onPaymentSuccess={() => {
-            Alert.alert('Pagamento Registrado', 'Seu pagamento foi registrado. Premium ativado!');
-            setUserPlan('premium');
-            setShowPaymentScreen(false);
-            saveUserPlan('premium', setUserPlan);
-          }}
-        />
-      );
+      return <PixPaymentScreen
+        onBack={() => setShowPaymentScreen(false)}
+        onSuccess={() => {
+          setShowPaymentScreen(false);
+          Alert.alert('⭐ Premium ativado!', 'Seu plano Premium está ativo por 30 dias.');
+        }}
+        setUserPlan={setUserPlan}
+      />;
     }
 
     switch (currentScreen) {
