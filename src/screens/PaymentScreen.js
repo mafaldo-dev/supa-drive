@@ -169,10 +169,11 @@ const PaymentScreen = ({ navigation, onPaymentSuccess }) => {
 
   const benefits = [
     { icon: 'local-activity', text: 'Semáforo Automático' },
-    { icon: 'warning', text: 'Alerta de Áreas de Risco' },
-    { icon: 'calculate', text: 'Cálculo de R$/km' },
-    { icon: 'headset-mic', text: 'Suporte Prioritário' },
+    { icon: 'timer', text: 'Cronometro' },
     { icon: 'trending-up', text: 'Análise Detalhada' },
+    { icon: 'calculate', text: 'Cálculo de R$/km' },
+    { icon: 'warning', text: 'Alerta de Áreas de Risco' },
+    { icon: 'headset-mic', text: 'Suporte Prioritário' },
   ];
 
   const handlePaymentMethodSelect = (method) => {
@@ -296,6 +297,7 @@ const PaymentScreen = ({ navigation, onPaymentSuccess }) => {
               <TouchableOpacity
                 style={styles.copyButton}
                 onPress={generatePixCode}
+                disabled={true}
               >
                 <MaterialIcons name="qr-code-2" size={20} color="#FFFFFF" />
                 <Text style={styles.copyButtonText}>Gerar QR Code PIX</Text>
@@ -345,7 +347,7 @@ const PaymentScreen = ({ navigation, onPaymentSuccess }) => {
             isProcessing && styles.paymentButtonDisabled
           ]}
           onPress={handlePayment}
-          disabled={isProcessing}
+          disabled
         >
           {isProcessing ? (
             <>

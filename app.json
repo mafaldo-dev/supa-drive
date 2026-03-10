@@ -1,38 +1,48 @@
 {
   "expo": {
-    "name": "supa-drive",
+    "name": "Supa Driver",
     "slug": "supa-drive",
     "version": "1.0.0",
     "scheme": "supa-drive",
     "orientation": "portrait",
-    "icon": "./assets/supa-drive.png",
+    "icon": "./assets/icon.png",
     "userInterfaceStyle": "dark",
     "splash": {
-      "image": "./assets/supa-drive.png",
+      "image": "./assets/icon.png",
       "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
+      "backgroundColor": "#0d0d14"
     },
     "ios": {
       "supportsTablet": true
     },
     "android": {
       "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
-        "foregroundImage": "./assets/supa-drive.png",
-        "backgroundImage": "./assets/supa-drive.png",
-        "monochromeImage": "./assets/supa-drive.png"
+        "foregroundImage": "./assets/icon.png",
+        "backgroundColor": "#0d0d14"
       },
-      "package": "com.markondes.supadrive"
+      "package": "com.markondes.supadrive",
+      "versionCode": 1,
+      "permissions": [
+        "NOTIFICATIONS",
+        "SYSTEM_ALERT_WINDOW"
+      ]
     },
     "web": {
-      "favicon": "./assets/supa-drive.png"
+      "favicon": "./assets/icon.png"
     },
     "plugins": [
       "expo-web-browser",
-      "@react-native-google-signin/google-signin"
+      "@react-native-google-signin/google-signin",
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/icon.png",
+          "color": "#FF6B6B"
+        }
+      ]
     ],
     "notification": {
-      "icon": "./assets/supa-drive.png",
+      "icon": "./assets/icon.png",
       "color": "#FF6B6B"
     },
     "extra": {

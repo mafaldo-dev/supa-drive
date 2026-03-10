@@ -6,7 +6,7 @@ const SUBSCRIPTION_KEY = '@motoristapro:subscription';
 
 // Constantes atualizadas para os planos do backend
 export const PLAN_PRICES = {
-  1: { monthly: 12.90, yearly: 154.80 },
+  1: { monthly: 14.90, yearly: 154.80 },
 
 };
 

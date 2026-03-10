@@ -17,13 +17,13 @@ const PlanModal = ({ visible, onClose, userPlan, onSelectPlan, onUpgradeClick })
       id: 'free',
       name: 'Básico',
       price: 'Grátis',
-      features: ['✓ Alerta de área de risco', '✗ Semáforo automático', '✗ Cálculo de R$/km']
+      features: ['✓ Preferencias personalizadas', ' ✓ Cronometro', '✓ Resumo semanal | Diario']
     },
     {
       id: 'premium',
       name: 'Premium',
-      price: 'R$ 12,90/mês',
-      features: ['✓ Alerta de área de risco', '✓ Semáforo automático', '✓ Cálculo de R$/km', '✓ Suporte prioritário', '✓ Sem renovação automática']
+      price: 'R$ 14,90/mês',
+      features: ['✓ Preferencias personalizadas', ' ✓ Cronometro', '✓ Resumo semanal | Diario', '✓ Suporte prioritário', '✓ Sem renovação automática', '✓ Semaforo inteligente', 'em breve mais recursos!']
     },
   ];
 

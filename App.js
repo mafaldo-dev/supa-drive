@@ -16,6 +16,7 @@ import * as NavigationBar from 'expo-navigation-bar'
 // Componentes
 import DrawerMenu from './src/components/DrawerMenu';
 import FloatingButton from './src/components/FloatingButton';
+import FloatingTimer from './src/components/FloatingTimer';
 import TrafficModal from './src/modals/TrafficModal';
 import PlanModal from './src/modals/PlanModal';
 
@@ -38,6 +39,7 @@ import { checkSavedLogin, saveUserPlan } from './src/services/authService';
 import { useGlobalStyles } from './src/styles/useGlobalStyles';
 import { useTheme } from './src/context/ThemeContext';
 import { useDriverSettings } from './src/hooks/useSubscription';
+import { timerService } from './src/services/sessionService';
 
 export default function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -54,14 +56,38 @@ export default function App() {
   const [showPaymentScreen, setShowPaymentScreen] = useState(false);
   const { settings: preferences, refreshSettings } = useDriverSettings();
 
+  // Estado global do cronômetro para o FloatingTimer
+  const [timerElapsed, setTimerElapsed] = useState(0);
+  const [timerRunning, setTimerRunning] = useState(false);
+  const [floatingTimerVisible, setFloatingTimerVisible] = useState(false);
+
   useEffect(() => {
     checkSavedLogin(setIsLoggedIn, setUser, setUserPlan, setCheckingAuth);
   }, []);
 
   useEffect(() => {
-    NavigationBar.setVisibilityAsync("hidden")
-    NavigationBar.setBehaviorAsync("overlay-swipe")
-  }, [])
+    NavigationBar.setVisibilityAsync("hidden");
+    NavigationBar.setBehaviorAsync("overlay-swipe");
+  }, []);
+
+  // Sync global do timer para o FloatingTimer
+  useEffect(() => {
+    if (!isLoggedIn) return;
+    const interval = setInterval(async () => {
+      const startTime = await timerService.getStartTime();
+      const floatingPref = await AsyncStorage.getItem('jornada_floating');
+      if (startTime) {
+        const secs = Math.floor((Date.now() - startTime) / 1000);
+        setTimerRunning(true);
+        setTimerElapsed(secs);
+        setFloatingTimerVisible(floatingPref === 'true' && currentScreen !== 'jornada');
+      } else {
+        setTimerRunning(false);
+        setFloatingTimerVisible(false);
+      }
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [isLoggedIn, currentScreen]);
 
   useEffect(() => {
     let interval;
@@ -120,7 +146,7 @@ export default function App() {
   const handleSelectPlan = async (planId) => {
     await saveUserPlan(planId, setUserPlan);
     setShowPlanModal(false);
-    Alert.alert('Plano alterado', `Agora você está no plano ${planId === 'premium' ? 'Premium' : 'Gratuito'}`, 'success');
+    Alert.alert('Plano alterado', `Agora você está no plano ${planId === 'premium' ? 'Premium' : 'Gratuito'}`);
   };
 
   const { colors } = useTheme();
@@ -143,8 +169,8 @@ export default function App() {
       return (
         <PaymentScreen
           navigation={{ goBack: () => setShowPaymentScreen(false) }}
-          onPaymentSuccess={(payment) => {
-            Alert.alert('Pagamento Registrado', 'Seu pagamento foi registrado. Premium ativado!', 'success');
+          onPaymentSuccess={() => {
+            Alert.alert('Pagamento Registrado', 'Seu pagamento foi registrado. Premium ativado!');
             setUserPlan('premium');
             setShowPaymentScreen(false);
             saveUserPlan('premium', setUserPlan);
@@ -154,16 +180,15 @@ export default function App() {
     }
 
     switch (currentScreen) {
-      case 'corridas': return <CorridasScreen />;
+      case 'semaforo': return <CorridasScreen />;
       case 'novidades': return <NovidadesScreen />;
       case 'promocoes': return <PromocoesScreen />;
       case 'configuracoes': return <ConfiguracoesScreen />;
       case 'suporte': return <SuporteScreen />;
       case 'conta': return <ContaScreen user={user} userPlan={userPlan} />;
-      case 'preferencias': return <PreferenciasScreen navigation={{ goBack: () => setCurrentScreen('home') }} />
-      case 'jornada': return <JornadaScreen preferences={preferences} />;
+      case 'preferencias': return <PreferenciasScreen navigation={{ goBack: () => setCurrentScreen('home') }} />;
+      case 'jornada': return <JornadaScreen preferences={preferences} userPlan={userPlan} />;
       case 'resumo': return <ResumoSemanalScreen preferences={preferences} />;
-    
       default: return (
         <HomeScreen
           user={user}
@@ -202,6 +227,14 @@ export default function App() {
       <View style={{ flex: 1 }}>
         {renderScreen()}
       </View>
+
+      {/* Ponto flutuante do cronômetro — aparece em todas as telas exceto Jornada */}
+      <FloatingTimer
+        elapsed={timerElapsed}
+        isRunning={timerRunning}
+        visible={floatingTimerVisible}
+        onPress={() => setCurrentScreen('jornada')}
+      />
 
       {showFloatingButton && isFloatingActive && userPlan === 'premium' && (
         <FloatingButton onPress={() => setShowFloatingButton(false)} badgeCount={3} />

@@ -40,44 +40,52 @@ export const timerService = {
 export const sessionService = {
   // Salva sessão no backend + cache local
   saveSession: async ({ durationSeconds, earnings, ridesCount, date }) => {
+    const parsedEarnings = parseFloat(String(earnings).replace(',', '.')) || 0;
+    const parsedRides = parseInt(ridesCount) || 0;
+    const parsedDuration = parseInt(durationSeconds) || 0;
+    const parsedDate = date || new Date().toISOString().split('T')[0];
+
     try {
       const driverId = await AsyncStorage.getItem(STORAGE_KEYS.DRIVER_ID);
+      const body = JSON.stringify({
+        driver_id: parseInt(driverId),
+        duration_seconds: parsedDuration,
+        earnings: parsedEarnings,
+        rides_count: parsedRides,
+        date: parsedDate,
+      });
+
       const response = await fetch(`${BACKEND_URL}/api/sessions`, {
         method: 'POST',
         headers: await getAuthHeaders(),
-        body: JSON.stringify({
-          driver_id: parseInt(driverId),
-          duration_seconds: durationSeconds,
-          earnings,
-          rides_count: ridesCount,
-          date: date || new Date().toISOString().split('T')[0],
-        })
+        body,
       });
-      const result = await response.json();
 
-      // Salva no cache local também
+      const text = await response.text();
+      let result;
+      try { result = JSON.parse(text); } catch { result = {}; }
+
       await sessionService.cacheSession({
         id: result.id || Date.now(),
         driver_id: parseInt(driverId),
-        duration_seconds: durationSeconds,
-        earnings,
-        rides_count: ridesCount,
-        date: date || new Date().toISOString().split('T')[0],
+        duration_seconds: parsedDuration,
+        earnings: parsedEarnings,
+        rides_count: parsedRides,
+        date: parsedDate,
         created_at: new Date().toISOString(),
       });
 
       return { success: true, data: result };
     } catch (error) {
-      // Se falhar no backend, salva só local
       console.error('Erro ao salvar sessão no backend:', error);
       const driverId = await AsyncStorage.getItem(STORAGE_KEYS.DRIVER_ID);
       await sessionService.cacheSession({
         id: Date.now(),
         driver_id: parseInt(driverId),
-        duration_seconds: durationSeconds,
-        earnings,
-        rides_count: ridesCount,
-        date: date || new Date().toISOString().split('T')[0],
+        duration_seconds: parsedDuration,
+        earnings: parsedEarnings,
+        rides_count: parsedRides,
+        date: parsedDate,
         created_at: new Date().toISOString(),
         pending_sync: true,
       });
@@ -130,6 +138,13 @@ export const sessionService = {
     const totalRides = weekSessions.reduce((acc, s) => acc + (s.rides_count || 0), 0);
     const daysWorked = weekSessions.length;
 
+    // So calcula ganho/hora com sessoes de pelo menos 5 minutos
+    const MIN_SECONDS = 5 * 60;
+    const validSessions = weekSessions.filter(s => (s.duration_seconds || 0) >= MIN_SECONDS);
+    const validSeconds = validSessions.reduce((acc, s) => acc + (s.duration_seconds || 0), 0);
+    const validEarnings = validSessions.reduce((acc, s) => acc + (s.earnings || 0), 0);
+    const avgEarningsPerHour = validSeconds > 0 ? validEarnings / (validSeconds / 3600) : 0;
+
     return {
       sessions: weekSessions,
       totalSeconds,
@@ -138,7 +153,7 @@ export const sessionService = {
       totalRides,
       daysWorked,
       avgEarningsPerDay: daysWorked > 0 ? totalEarnings / daysWorked : 0,
-      avgEarningsPerHour: totalSeconds > 0 ? totalEarnings / (totalSeconds / 3600) : 0,
+      avgEarningsPerHour,
       avgRidesPerDay: daysWorked > 0 ? totalRides / daysWorked : 0,
     };
   },

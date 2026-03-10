@@ -478,7 +478,7 @@ const HomeScreen = ({
           </Text>
         </View>
         {!isPremium && (
-          <TouchableOpacity style={styles.subCardBtn} onPress={() => setShowPlanModal(true)}>
+          <TouchableOpacity style={styles.subCardBtn} onPress={() => setShowPlanModal(false)}>
             <Text style={styles.subCardBtnText}>Ver planos</Text>
           </TouchableOpacity>
         )}
