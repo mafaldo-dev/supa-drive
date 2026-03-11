@@ -40,6 +40,7 @@ import { useGlobalStyles } from './src/styles/useGlobalStyles';
 import { useTheme } from './src/context/ThemeContext';
 import { useDriverSettings } from './src/hooks/useSubscription';
 import { timerService } from './src/services/sessionService';
+import SemaforoScreen from './src/screens/SemaforoScreen';
 
 export default function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -177,15 +178,16 @@ export default function App() {
     }
 
     switch (currentScreen) {
-      case 'semaforo': return <CorridasScreen />;
+      case 'semaforo': return <SemaforoScreen />;
       case 'novidades': return <NovidadesScreen />;
       case 'promocoes': return <PromocoesScreen />;
       case 'configuracoes': return <ConfiguracoesScreen />;
       case 'suporte': return <SuporteScreen />;
-      case 'conta': return <ContaScreen user={user} userPlan={userPlan} />;
+      case 'conta': return <ContaScreen user={user} userPlan={userPlan} onLogout={() => setCurrentScreen('logout')} onUpgradeClick={() => setShowPaymentScreen(true)} />;
       case 'preferencias': return <PreferenciasScreen navigation={{ goBack: () => setCurrentScreen('home') }} />;
       case 'jornada': return <JornadaScreen preferences={preferences} userPlan={userPlan} />;
       case 'resumo': return <ResumoSemanalScreen preferences={preferences} />;
+      case 'corridas': return <CorridasScreen />;
       default: return (
         <HomeScreen
           user={user}

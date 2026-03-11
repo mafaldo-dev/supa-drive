@@ -112,8 +112,8 @@ const SuporteScreen = () => {
         borderWidth: 1, borderColor: C.border, overflow: 'hidden',
       }}>
         {[
-          { icon: 'chat', label: 'Enviar Mensagem', onPress: () => {} },
-          { icon: 'email', label: 'Enviar e-mail', onPress: () => Linking.openURL('mailto:suporte@supadriver.com.br') },
+          { icon: 'chat', label: 'Enviar Mensagem', onPress: () => {Linking.openURL('https://wa.me/5511999999999')} },
+          { icon: 'email', label: 'Enviar e-mail', onPress: () => Linking.openURL('mailto:suporte-supadrive@gmail.com') },
         ].map((item, i, arr) => (
           <TouchableOpacity
             key={i}

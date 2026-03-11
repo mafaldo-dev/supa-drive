@@ -11,7 +11,7 @@ import { STORAGE_KEYS } from '../utils/storage';
 import { saveUserPlan } from '../services/authService';
 
 const PRICE = 14.90;
-const STRIPE_PUBLISHABLE_KEY = 'pk_live_SEU_TOKEN_AQUI'; // substitua pela sua pk_live_
+const stp_key = process.env.STRIPE_PUBLISHABLE_KEY; 
 
 const CardPaymentScreen = ({ onBack, onSuccess, setUserPlan }) => {
   const { isDark } = useTheme();
@@ -72,7 +72,7 @@ const CardPaymentScreen = ({ onBack, onSuccess, setUserPlan }) => {
       const stripeRes = await fetch('https://api.stripe.com/v1/tokens', {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${STRIPE_PUBLISHABLE_KEY}`,
+          'Authorization': `Bearer ${stp_key}`,
           'Content-Type': 'application/x-www-form-urlencoded',
         },
         body: [

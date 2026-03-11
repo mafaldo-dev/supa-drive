@@ -9,6 +9,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useTheme } from '../context/ThemeContext';
 import { timerService, sessionService } from '../services/sessionService';
 import { notificationService } from '../services/notificationService';
+import { nativeService } from '../services/nativeService';
 
 const NOTIF_PREFS_KEY = 'jornada_notif_prefs';
 const FLOATING_KEY = 'jornada_floating';
@@ -120,7 +121,7 @@ const JornadaScreen = ({ preferences, userPlan }) => {
 
   useEffect(() => {
     // Pede permissão de notificações ao entrar na tela
-    notificationService?.requestPermissions();
+    // permissões gerenciadas pelo módulo nativo
   }, []);
 
   useEffect(() => {
@@ -195,7 +196,7 @@ const JornadaScreen = ({ preferences, userPlan }) => {
     setIsRunning(true);
     setIsPaused(false);
     // Agenda alerta automático de pausa após 4h
-    await notificationService?.scheduleFourHourAlert();
+    await nativeService.sendFourHourAlert(); // agenda internamente no nativo
   };
 
   const handleStop = () => {
@@ -229,14 +230,14 @@ const JornadaScreen = ({ preferences, userPlan }) => {
     });
 
     // Cancela o alerta de 4h
-    await notificationService?.cancelFourHourAlert?.();
+    await nativeService.cancelAllNotifications();
 
     // Dispara notificação ANTES de resetar os estados
     const sessionData = { durationSeconds: finalDuration, earnings: finalEarnings, ridesCount: finalRides };
     if (pushEnabled) {
-      await notificationService?.sendEndOfDayPush?.(sessionData);
+      await nativeService.sendJourneyEndPush(sessionData);
     } else if (voiceEnabled) {
-      notificationService?.speakEndOfDay?.(sessionData);
+      await nativeService.speakJourneyEnd(sessionData);
     }
 
     // Reseta estados depois de tudo

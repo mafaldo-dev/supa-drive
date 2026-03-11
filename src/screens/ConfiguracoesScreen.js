@@ -3,8 +3,7 @@ import { View, Text, Switch, Alert, ScrollView, TouchableOpacity, Linking, Modal
 import { MaterialIcons } from '@expo/vector-icons';
 import { useTheme } from '../context/ThemeContext';
 import { getNotificationStatus, setNotificationStatus } from '../services/notificationService';
-
-const APP_VERSION = '1.0.2 BETA';
+import { APP_VERSION } from '../utils/constants';
 
 const TERMS = `TERMOS E CONDIÇÕES DE USO — SUPA DRIVER
 
@@ -145,7 +144,7 @@ const ConfiguracoesScreen = () => {
           right={<MaterialIcons name="chevron-right" size={20} color={C.textSecondary} />}
         />
         <SettingRow icon="email" label="Falar com suporte"
-          onPress={() => Linking.openURL('mailto:suporte@supadriver.com.br')}
+          onPress={() => Linking.openURL('mailto:suporte-supadrive@gmail.com')}
           right={<MaterialIcons name="chevron-right" size={20} color={C.textSecondary} />}
         />
         <SettingRow icon="code" label="Desenvolvido por"
