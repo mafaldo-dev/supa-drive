@@ -16,7 +16,7 @@ Ao utilizar o aplicativo Supa Driver, você concorda com estes Termos e Condiç�
 O Supa Driver é uma ferramenta de apoio para motoristas de aplicativo, oferecendo controle de jornadas, análise de ganhos e recursos de produtividade. Não somos uma plataforma de transporte e não intermediamos corridas.
 
 3. PLANOS E PAGAMENTOS
-O plano Básico é gratuito. O plano Premium custa R$ 14,90/mês e não possui renovação automática. O acesso premium permanece ativo até o fim do período contratado.
+O plano Básico é gratuito. O plano Premium custa R$ 19,90/mês e não possui renovação automática. O acesso premium permanece ativo até o fim do período contratado.
 
 4. DADOS E PRIVACIDADE
 Coletamos apenas os dados necessários para o funcionamento do app (e-mail, nome e dados de jornada). Não vendemos seus dados a terceiros. Os dados são armazenados de forma segura em nossos servidores.

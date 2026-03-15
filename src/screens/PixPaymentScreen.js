@@ -11,13 +11,20 @@ import { STORAGE_KEYS } from '../utils/storage';
 import { saveUserPlan } from '../services/authService';
 import CardPaymentScreen from './CardPaymentScreen';
 
-const PRICE = 14.90;
+const PLANS = {
+  monthly: { price: 19.90, label: '30 dias', description: 'Mensal', badge: null },
+  yearly:  { price: 129.90, label: '12 meses', description: 'Anual', badge: 'ECONOMIZE 46%' },
+};
+
 const EXPIRY_SECONDS = 1800;
 const POLL_INTERVAL = 5000;
 
 const PixPaymentScreen = ({ onBack, onSuccess, setUserPlan }) => {
   const { isDark } = useTheme();
-  const [loading, setLoading] = useState(true);
+
+  // Seleção de plano — começa na tela de escolha
+  const [planType, setPlanType] = useState(null); // null = tela de seleção
+  const [loading, setLoading] = useState(false);
   const [pixData, setPixData] = useState(null);
   const [error, setError] = useState(null);
   const [timeLeft, setTimeLeft] = useState(EXPIRY_SECONDS);
@@ -35,18 +42,19 @@ const PixPaymentScreen = ({ onBack, onSuccess, setUserPlan }) => {
     textSecondary: isDark ? '#8888aa' : '#888899',
     accent: '#FF6B6B',
     green: '#4ade80',
+    yellow: '#facc15',
     accentSoft: isDark ? 'rgba(255,107,107,0.12)' : 'rgba(255,107,107,0.08)',
+    greenSoft: isDark ? 'rgba(74,222,128,0.12)' : 'rgba(74,222,128,0.1)',
+    yellowSoft: isDark ? 'rgba(250,204,21,0.12)' : 'rgba(250,204,21,0.08)',
   };
 
   useEffect(() => {
-    generatePix();
     return () => {
       clearInterval(pollRef.current);
       clearInterval(timerRef.current);
     };
   }, []);
 
-  // Se abriu tela de cartão, pausa o polling do PIX
   useEffect(() => {
     if (showCard) {
       clearInterval(pollRef.current);
@@ -54,7 +62,12 @@ const PixPaymentScreen = ({ onBack, onSuccess, setUserPlan }) => {
     }
   }, [showCard]);
 
-  const generatePix = async () => {
+  const handleSelectPlan = async (type) => {
+    setPlanType(type);
+    await generatePix(type);
+  };
+
+  const generatePix = async (type) => {
     try {
       setLoading(true);
       setError(null);
@@ -64,7 +77,11 @@ const PixPaymentScreen = ({ onBack, onSuccess, setUserPlan }) => {
       const res = await fetch(`${BACKEND_URL}/api/payments/pix/create`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ driver_id: parseInt(driverId), payer_email: email }),
+        body: JSON.stringify({
+          driver_id: parseInt(driverId),
+          payer_email: email,
+          plan_type: type,
+        }),
       });
 
       const data = await res.json();
@@ -130,10 +147,13 @@ const PixPaymentScreen = ({ onBack, onSuccess, setUserPlan }) => {
     return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
   };
 
+  const formatPrice = (val) => `R$ ${val.toFixed(2).replace('.', ',')}`;
+
   // Tela de cartão
   if (showCard) {
     return (
       <CardPaymentScreen
+        planType={planType}
         onBack={() => setShowCard(false)}
         onSuccess={onSuccess}
         setUserPlan={setUserPlan}
@@ -143,6 +163,7 @@ const PixPaymentScreen = ({ onBack, onSuccess, setUserPlan }) => {
 
   // Tela de sucesso
   if (paid) {
+    const plan = PLANS[planType];
     return (
       <View style={{ flex: 1, backgroundColor: C.bg, justifyContent: 'center', alignItems: 'center', padding: 32 }}>
         <View style={{ width: 80, height: 80, borderRadius: 40, backgroundColor: C.green + '20', justifyContent: 'center', alignItems: 'center', marginBottom: 20 }}>
@@ -152,11 +173,110 @@ const PixPaymentScreen = ({ onBack, onSuccess, setUserPlan }) => {
           Pagamento confirmado!
         </Text>
         <Text style={{ fontSize: 14, color: C.textSecondary, textAlign: 'center' }}>
-          Seu plano Premium está ativo por 30 dias. 🎉
+          Seu plano Premium está ativo por {plan?.label}. 🎉
         </Text>
       </View>
     );
   }
+
+  // ─── Tela de seleção de plano ───────────────────────────────────────────────
+  if (!planType) {
+    return (
+      <ScrollView
+        style={{ flex: 1, backgroundColor: C.bg }}
+        contentContainerStyle={{ padding: 16, paddingBottom: 40 }}
+        showsVerticalScrollIndicator={false}
+      >
+        <TouchableOpacity onPress={onBack} style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 20, gap: 8 }}>
+          <MaterialIcons name="arrow-back" size={22} color={C.textPrimary} />
+          <Text style={{ fontSize: 14, color: C.textPrimary, fontWeight: '600' }}>Voltar</Text>
+        </TouchableOpacity>
+
+        <Text style={{ fontSize: 22, fontWeight: '800', color: C.textPrimary, marginBottom: 4 }}>
+          Assinar Premium ⭐
+        </Text>
+        <Text style={{ fontSize: 13, color: C.textSecondary, marginBottom: 28 }}>
+          Escolha o plano que melhor se encaixa pra você
+        </Text>
+
+        {/* Benefícios */}
+        <View style={{ backgroundColor: C.card, borderRadius: 16, padding: 16, marginBottom: 24, borderWidth: 1, borderColor: C.border }}>
+          <Text style={{ fontSize: 13, fontWeight: '700', color: C.textPrimary, marginBottom: 12 }}>
+            O que você recebe:
+          </Text>
+          {[
+            '🚦 Semáforo Inteligente de corridas',
+            '📊 Resumo semanal detalhado',
+            '🔔 Alertas e notificações em voz',
+            '📱 Monitoramento em segundo plano',
+            '⭐ Suporte prioritário',
+          ].map((item, i) => (
+            <View key={i} style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+              <Text style={{ fontSize: 13, color: C.textSecondary }}>{item}</Text>
+            </View>
+          ))}
+        </View>
+
+        {/* Plano Anual — destaque */}
+        <TouchableOpacity
+          onPress={() => handleSelectPlan('yearly')}
+          style={{
+            backgroundColor: C.greenSoft, borderRadius: 20, padding: 20,
+            marginBottom: 12, borderWidth: 2, borderColor: C.green + '50',
+          }}
+        >
+          <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 8 }}>
+            <View>
+              <Text style={{ fontSize: 16, fontWeight: '800', color: C.textPrimary }}>Plano Anual</Text>
+              <Text style={{ fontSize: 12, color: C.textSecondary, marginTop: 2 }}>12 meses de acesso</Text>
+            </View>
+            <View style={{ backgroundColor: C.green, borderRadius: 8, paddingHorizontal: 10, paddingVertical: 4 }}>
+              <Text style={{ fontSize: 11, fontWeight: '800', color: '#0d0d14' }}>ECONOMIZE 46%</Text>
+            </View>
+          </View>
+          <Text style={{ fontSize: 32, fontWeight: '800', color: C.green }}>
+            {formatPrice(PLANS.yearly.price)}
+          </Text>
+          <Text style={{ fontSize: 12, color: C.textSecondary, marginTop: 2 }}>
+            equivale a {formatPrice(PLANS.yearly.price / 12)}/mês
+          </Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 14, backgroundColor: C.green, borderRadius: 12, padding: 12, justifyContent: 'center' }}>
+            <MaterialIcons name="qr-code-2" size={18} color="#0d0d14" />
+            <Text style={{ color: '#0d0d14', fontWeight: '800', fontSize: 14 }}>Pagar com PIX</Text>
+          </View>
+        </TouchableOpacity>
+
+        {/* Plano Mensal */}
+        <TouchableOpacity
+          onPress={() => handleSelectPlan('monthly')}
+          style={{
+            backgroundColor: C.card, borderRadius: 20, padding: 20,
+            marginBottom: 24, borderWidth: 1, borderColor: C.border,
+          }}
+        >
+          <View style={{ marginBottom: 8 }}>
+            <Text style={{ fontSize: 16, fontWeight: '800', color: C.textPrimary }}>Plano Mensal</Text>
+            <Text style={{ fontSize: 12, color: C.textSecondary, marginTop: 2 }}>30 dias de acesso</Text>
+          </View>
+          <Text style={{ fontSize: 32, fontWeight: '800', color: C.accent }}>
+            {formatPrice(PLANS.monthly.price)}
+          </Text>
+          <Text style={{ fontSize: 12, color: C.textSecondary, marginTop: 2 }}>por mês</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 14, backgroundColor: C.accentSoft, borderRadius: 12, padding: 12, justifyContent: 'center', borderWidth: 1, borderColor: C.accent + '30' }}>
+            <MaterialIcons name="qr-code-2" size={18} color={C.accent} />
+            <Text style={{ color: C.accent, fontWeight: '800', fontSize: 14 }}>Pagar com PIX</Text>
+          </View>
+        </TouchableOpacity>
+
+        <Text style={{ fontSize: 11, color: C.textSecondary, textAlign: 'center' }}>
+          Pagamento seguro • Ativação imediata • Cancele quando quiser
+        </Text>
+      </ScrollView>
+    );
+  }
+
+  // ─── Tela do QR PIX ────────────────────────────────────────────────────────
+  const currentPlan = PLANS[planType];
 
   return (
     <ScrollView
@@ -165,16 +285,17 @@ const PixPaymentScreen = ({ onBack, onSuccess, setUserPlan }) => {
       showsVerticalScrollIndicator={false}
     >
       {/* Header */}
-      <TouchableOpacity onPress={onBack} style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 20, gap: 8 }}>
+      <TouchableOpacity onPress={() => { setPlanType(null); setPixData(null); setError(null); clearInterval(pollRef.current); clearInterval(timerRef.current); }}
+        style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 20, gap: 8 }}>
         <MaterialIcons name="arrow-back" size={22} color={C.textPrimary} />
-        <Text style={{ fontSize: 14, color: C.textPrimary, fontWeight: '600' }}>Voltar</Text>
+        <Text style={{ fontSize: 14, color: C.textPrimary, fontWeight: '600' }}>Escolher plano</Text>
       </TouchableOpacity>
 
       <Text style={{ fontSize: 22, fontWeight: '800', color: C.textPrimary, marginBottom: 4 }}>
-        Assinar Premium ⭐
+        Pagar via PIX ⭐
       </Text>
       <Text style={{ fontSize: 13, color: C.textSecondary, marginBottom: 24 }}>
-        Pague via PIX e ative na hora
+        Plano {currentPlan.description} — {currentPlan.label}
       </Text>
 
       {loading ? (
@@ -187,7 +308,7 @@ const PixPaymentScreen = ({ onBack, onSuccess, setUserPlan }) => {
           <MaterialIcons name="error-outline" size={40} color={C.accent} />
           <Text style={{ color: C.textPrimary, fontWeight: '700', marginTop: 12, marginBottom: 8 }}>Erro ao gerar PIX</Text>
           <Text style={{ color: C.textSecondary, textAlign: 'center', marginBottom: 20 }}>{error}</Text>
-          <TouchableOpacity onPress={generatePix} style={{ backgroundColor: C.accent, borderRadius: 12, paddingHorizontal: 24, paddingVertical: 12 }}>
+          <TouchableOpacity onPress={() => generatePix(planType)} style={{ backgroundColor: C.accent, borderRadius: 12, paddingHorizontal: 24, paddingVertical: 12 }}>
             <Text style={{ color: '#fff', fontWeight: '700' }}>Tentar novamente</Text>
           </TouchableOpacity>
         </View>
@@ -196,19 +317,30 @@ const PixPaymentScreen = ({ onBack, onSuccess, setUserPlan }) => {
           <MaterialIcons name="timer-off" size={40} color={C.accent} />
           <Text style={{ color: C.textPrimary, fontWeight: '700', marginTop: 12, marginBottom: 8 }}>PIX expirado</Text>
           <Text style={{ color: C.textSecondary, textAlign: 'center', marginBottom: 20 }}>O tempo de pagamento expirou. Gere um novo QR code.</Text>
-          <TouchableOpacity onPress={generatePix} style={{ backgroundColor: C.accent, borderRadius: 12, paddingHorizontal: 24, paddingVertical: 12 }}>
+          <TouchableOpacity onPress={() => generatePix(planType)} style={{ backgroundColor: C.accent, borderRadius: 12, paddingHorizontal: 24, paddingVertical: 12 }}>
             <Text style={{ color: '#fff', fontWeight: '700' }}>Gerar novo PIX</Text>
           </TouchableOpacity>
         </View>
       ) : (
         <>
           {/* Valor */}
-          <View style={{ backgroundColor: C.accentSoft, borderRadius: 16, padding: 16, alignItems: 'center', marginBottom: 16, borderWidth: 1, borderColor: C.accent + '30' }}>
+          <View style={{
+            backgroundColor: planType === 'yearly' ? C.greenSoft : C.accentSoft,
+            borderRadius: 16, padding: 16, alignItems: 'center', marginBottom: 16,
+            borderWidth: 1, borderColor: (planType === 'yearly' ? C.green : C.accent) + '30',
+          }}>
             <Text style={{ fontSize: 13, color: C.textSecondary, marginBottom: 4 }}>Valor a pagar</Text>
-            <Text style={{ fontSize: 32, fontWeight: '800', color: C.accent }}>
-              R$ {PRICE.toFixed(2).replace('.', ',')}
+            <Text style={{ fontSize: 32, fontWeight: '800', color: planType === 'yearly' ? C.green : C.accent }}>
+              {formatPrice(currentPlan.price)}
             </Text>
-            <Text style={{ fontSize: 12, color: C.textSecondary, marginTop: 4 }}>Plano Premium — 30 dias</Text>
+            <Text style={{ fontSize: 12, color: C.textSecondary, marginTop: 4 }}>
+              Plano {currentPlan.description} — {currentPlan.label}
+            </Text>
+            {planType === 'yearly' && (
+              <View style={{ backgroundColor: C.green, borderRadius: 6, paddingHorizontal: 10, paddingVertical: 3, marginTop: 8 }}>
+                <Text style={{ fontSize: 11, fontWeight: '800', color: '#0d0d14' }}>ECONOMIZE 46%</Text>
+              </View>
+            )}
           </View>
 
           {/* Timer */}
@@ -218,7 +350,7 @@ const PixPaymentScreen = ({ onBack, onSuccess, setUserPlan }) => {
               Expira em {formatTime(timeLeft)}
             </Text>
             {checking && <ActivityIndicator size="small" color={C.green} />}
-            {checking && <Text style={{ fontSize: 11, color: C.green }}>Verificando pagamento...</Text>}
+            {checking && <Text style={{ fontSize: 11, color: C.green }}>Verificando...</Text>}
           </View>
 
           {/* QR Code */}
@@ -241,29 +373,21 @@ const PixPaymentScreen = ({ onBack, onSuccess, setUserPlan }) => {
           </View>
 
           {/* Copiar código */}
-          <TouchableOpacity
-            onPress={copyCode}
-            style={{
-              backgroundColor: C.card, borderRadius: 16, padding: 16,
-              flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
-              gap: 10, borderWidth: 1, borderColor: C.border, marginBottom: 12,
-            }}
-          >
+          <TouchableOpacity onPress={copyCode} style={{
+            backgroundColor: C.card, borderRadius: 16, padding: 16,
+            flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
+            gap: 10, borderWidth: 1, borderColor: C.border, marginBottom: 12,
+          }}>
             <MaterialIcons name="content-copy" size={18} color={C.accent} />
-            <Text style={{ color: C.accent, fontWeight: '700', fontSize: 14 }}>
-              Copiar código PIX
-            </Text>
+            <Text style={{ color: C.accent, fontWeight: '700', fontSize: 14 }}>Copiar código PIX</Text>
           </TouchableOpacity>
 
           {/* Botão cartão */}
-          <TouchableOpacity
-            onPress={() => setShowCard(true)}
-            style={{
-              backgroundColor: C.card, borderRadius: 16, padding: 16,
-              flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
-              gap: 10, borderWidth: 1, borderColor: C.border, marginBottom: 20,
-            }}
-          >
+          <TouchableOpacity onPress={() => setShowCard(true)} style={{
+            backgroundColor: C.card, borderRadius: 16, padding: 16,
+            flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
+            gap: 10, borderWidth: 1, borderColor: C.border, marginBottom: 20,
+          }}>
             <MaterialIcons name="credit-card" size={18} color={C.textSecondary} />
             <Text style={{ color: C.textSecondary, fontWeight: '600', fontSize: 14 }}>
               Pagar com Cartão de Crédito
@@ -279,7 +403,7 @@ const PixPaymentScreen = ({ onBack, onSuccess, setUserPlan }) => {
               'Abra o app do seu banco',
               'Escolha pagar com PIX',
               'Escaneie o QR code ou cole o código',
-              'Confirme o pagamento de R$ 14,90',
+              `Confirme o pagamento de ${formatPrice(currentPlan.price)}`,
               'Verifique os dados do RECEBEDOR Guilherme Ma***do de Ol****ra',
               'O Premium será ativado automaticamente!',
             ].map((step, i) => (

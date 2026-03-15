@@ -198,7 +198,7 @@ const ContaScreen = ({ user, userPlan, onLogout, onUpgradeClick }) => {
           </View>
           <View style={{ flex: 1 }}>
             <Text style={{ fontSize: 15, fontWeight: '800', color: C.textPrimary }}>Plano Grátis</Text>
-            <Text style={{ fontSize: 12, color: C.textSecondary, marginTop: 2 }}>Assine o Premium por R$ 14,90/mês</Text>
+            <Text style={{ fontSize: 12, color: C.textSecondary, marginTop: 2 }}>Assine o Premium por R$ 19,90/mês</Text>
           </View>
           <View style={{ backgroundColor: C.accent, borderRadius: 8, paddingHorizontal: 12, paddingVertical: 6 }}>
             <Text style={{ color: '#fff', fontWeight: '800', fontSize: 12 }}>UPGRADE</Text>

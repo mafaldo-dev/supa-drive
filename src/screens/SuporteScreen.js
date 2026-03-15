@@ -23,7 +23,7 @@ const FAQ_ITEMS = [
   },
   {
     question: 'O que é o plano Premium?',
-    answer: 'O plano Premium por R$ 14,90/mês desbloqueia o semáforo inteligente de corridas, mensagens de voz ao fim da jornada, relatórios detalhados e suporte prioritário.',
+    answer: 'O plano Premium por R$ 19,90/mês desbloqueia o semáforo inteligente de corridas, mensagens de voz ao fim da jornada, relatórios detalhados e suporte prioritário.',
   },
   {
     question: 'Meus dados ficam salvos se eu trocar de celular?',

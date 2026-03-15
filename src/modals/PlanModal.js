@@ -22,7 +22,7 @@ const PlanModal = ({ visible, onClose, userPlan, onSelectPlan, onUpgradeClick })
     {
       id: 'premium',
       name: 'Premium',
-      price: 'R$ 14,90/mês',
+      price: 'R$ 19,90/mês',
       features: ['✓ Preferencias personalizadas', ' ✓ Cronometro', '✓ Resumo semanal | Diario', '✓ Suporte prioritário', '✓ Sem renovação automática', '✓ Semaforo inteligente', 'em breve mais recursos!']
     },
   ];

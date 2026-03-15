@@ -1,280 +1,318 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
-  View,
-  Text,
-  TouchableOpacity,
-  TextInput,
-  ScrollView,
-  StyleSheet,
-  ActivityIndicator,
-  Alert,
+  View, Text, TouchableOpacity, ScrollView,
+  TextInput, ActivityIndicator, Alert, RefreshControl, Clipboard
 } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useTheme } from '../context/ThemeContext';
-import { usePromotions, usePlans } from '../hooks/useSubscription';
+import { BACKEND_URL } from '../utils/constants';
+import { STORAGE_KEYS } from '../utils/storage';
 
 const PromocoesScreen = () => {
+  const { isDark } = useTheme();
+  const [promos, setPromos] = useState([]);
+  const [coupons, setCoupons] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [couponCode, setCouponCode] = useState('');
+  const [applying, setApplying] = useState(false);
+  const [copiedCode, setCopiedCode] = useState(null);
 
-  const { colors } = useTheme();
-  const { promotions, isLoading: promotionsLoading, applyPromotionCode } = usePromotions();
-  const { plans } = usePlans();
+  const C = {
+    bg: isDark ? '#0d0d14' : '#f0f0f7',
+    card: isDark ? '#1a1a2e' : '#ffffff',
+    border: isDark ? 'rgba(255,255,255,0.07)' : 'rgba(0,0,0,0.06)',
+    textPrimary: isDark ? '#f0f0f0' : '#1a1a2e',
+    textSecondary: isDark ? '#8888aa' : '#888899',
+    accent: '#FF6B6B',
+    green: '#4ade80',
+    yellow: '#facc15',
+    input: isDark ? '#16213e' : '#f8f8ff',
+    accentSoft: isDark ? 'rgba(255,107,107,0.12)' : 'rgba(255,107,107,0.08)',
+    greenSoft: isDark ? 'rgba(74,222,128,0.12)' : 'rgba(74,222,128,0.1)',
+    yellowSoft: isDark ? 'rgba(250,204,21,0.12)' : 'rgba(250,204,21,0.08)',
+  };
 
-  const [promoCode, setPromoCode] = useState('');
-  const [selectedPlan, setSelectedPlan] = useState(null);
-  const [isApplying, setIsApplying] = useState(false);
-  const [appliedPromotions, setAppliedPromotions] = useState(new Set());
+  useEffect(() => { loadData(); }, []);
 
-  const styles = StyleSheet.create({
-    container: {
-      flex: 1,
-      backgroundColor: colors.background,
-    },
-    header: {
-      backgroundColor: colors.headerBackground,
-      paddingHorizontal: 16,
-      paddingTop: 50,
-      paddingBottom: 16,
-      borderBottomWidth: 1,
-      borderBottomColor: colors.border,
-      alignItems: 'center',
-    },
-    headerTitle: {
-      fontSize: 18,
-      fontWeight: '700',
-      color: colors.textPrimary,
-    },
-    content: {
-      padding: 16,
-    },
-    promoCard: {
-      backgroundColor: colors.cardBackground,
-      borderRadius: 12,
-      padding: 20,
-      marginBottom: 16,
-      borderWidth: 1,
-      borderColor: colors.border,
-    },
-    promoEmoji: {
-      fontSize: 32,
-      textAlign: 'center',
-      marginBottom: 12,
-    },
-    promoTitle: {
-      fontSize: 18,
-      fontWeight: '700',
-      color: colors.textPrimary,
-      textAlign: 'center',
-      marginBottom: 8,
-    },
-    promoDescription: {
-      fontSize: 14,
-      color: colors.textSecondary,
-      textAlign: 'center',
-      marginBottom: 16,
-    },
-    promoCodeInput: {
-      backgroundColor: colors.background,
-      borderWidth: 1,
-      borderColor: colors.border,
-      borderRadius: 8,
-      padding: 12,
-      fontSize: 16,
-      marginBottom: 12,
-      color: colors.textPrimary,
-    },
-    planSelector: {
-      marginBottom: 16,
-    },
-    planSelectorTitle: {
-      fontSize: 14,
-      fontWeight: '600',
-      color: colors.textPrimary,
-      marginBottom: 8,
-    },
-    planOption: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      padding: 12,
-      borderWidth: 1,
-      borderColor: colors.border,
-      borderRadius: 8,
-      marginBottom: 8,
-    },
-    planOptionSelected: {
-      borderColor: colors.accent,
-      backgroundColor: colors.accentLight,
-    },
-    planOptionText: {
-      marginLeft: 8,
-      fontSize: 14,
-      color: colors.textPrimary,
-    },
-    applyButton: {
-      backgroundColor: colors.accent,
-      borderRadius: 8,
-      padding: 14,
-      alignItems: 'center',
-      marginBottom: 12,
-    },
-    applyButtonText: {
-      color: '#FFFFFF',
-      fontSize: 16,
-      fontWeight: '600',
-    },
-    appliedBadge: {
-      backgroundColor: '#4CAF50',
-      borderRadius: 12,
-      paddingHorizontal: 8,
-      paddingVertical: 4,
-      alignSelf: 'flex-start',
-    },
-    appliedBadgeText: {
-      color: '#FFFFFF',
-      fontSize: 12,
-      fontWeight: '600',
-    },
-  });
-
-  const handleApplyPromotion = async () => {
-    if (!promoCode.trim()) {
-      Alert.alert('Erro', 'Digite um código promocional');
-      return;
-    }
-
-    if (!selectedPlan) {
-      Alert.alert('Erro', 'Selecione um plano');
-      return;
-    }
-
-    setIsApplying(true);
+  const loadData = async () => {
     try {
-      const result = await applyPromotionCode(promoCode.toUpperCase(), selectedPlan);
+      setLoading(true);
+      const driverId = await AsyncStorage.getItem(STORAGE_KEYS.DRIVER_ID);
 
-      if (result.valid) {
-        setAppliedPromotions(prev => new Set([...prev, promoCode.toUpperCase()]));
-        Alert.alert(
-          'Sucesso!',
-          `Código aplicado! ${result.discount_amount > 0 ? `Desconto: R$ ${result.discount_amount.toFixed(2)}` : ''}\nPreço final: R$ ${result.final_price.toFixed(2)}`,
-          [{ text: 'OK' }]
-        );
-        setPromoCode('');
-      } else {
-        Alert.alert('Erro', result.message);
-      }
-    } catch (error) {
-      Alert.alert('Erro', 'Erro ao aplicar código promocional');
+      const [promosRes, couponsRes] = await Promise.all([
+        fetch(`${BACKEND_URL}/api/promotions/active`),
+        fetch(`${BACKEND_URL}/api/promotions/coupons/driver/${driverId}`),
+      ]);
+
+      if (promosRes.ok) setPromos(await promosRes.json());
+      if (couponsRes.ok) setCoupons(await couponsRes.json());
+    } catch (e) {
+      console.log('Erro ao carregar promoções:', e);
     } finally {
-      setIsApplying(false);
+      setLoading(false);
+      setRefreshing(false);
     }
   };
 
-  const renderPromotionCard = (promotion) => {
-    const isApplied = appliedPromotions.has(promotion.code);
+  const onRefresh = useCallback(() => {
+    setRefreshing(true);
+    loadData();
+  }, []);
 
-    return (
-      <View key={promotion.id} style={styles.promoCard}>
-        <Text style={styles.promoEmoji}>🎉</Text>
-        <Text style={styles.promoTitle}>{promotion.name}</Text>
-        <Text style={styles.promoDescription}>{promotion.description}</Text>
-
-        {isApplied && (
-          <View style={styles.appliedBadge}>
-            <Text style={styles.appliedBadgeText}>✓ Aplicado</Text>
-          </View>
-        )}
-      </View>
-    );
+  const handleApplyCoupon = async () => {
+    if (!couponCode.trim()) {
+      Alert.alert('Atenção', 'Digite um código de cupom.');
+      return;
+    }
+    setApplying(true);
+    try {
+      const res = await fetch(`${BACKEND_URL}/api/promotions/apply`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code: couponCode.toUpperCase(), plan_id: 1 }),
+      });
+      const data = await res.json();
+      if (data.valid) {
+        const discount = data.discount_amount > 0
+          ? `Desconto de R$ ${data.discount_amount.toFixed(2).replace('.', ',')}!`
+          : 'Desconto aplicado!';
+        Alert.alert('✅ Cupom válido!', `${discount}\nPreço final: R$ ${data.final_price?.toFixed(2).replace('.', ',')}`);
+        setCouponCode('');
+        loadData();
+      } else {
+        Alert.alert('❌ Cupom inválido', data.message || 'Este cupom não é válido ou já expirou.');
+      }
+    } catch (e) {
+      Alert.alert('Erro', 'Não foi possível aplicar o cupom. Tente novamente.');
+    } finally {
+      setApplying(false);
+    }
   };
 
-  if (promotionsLoading) {
+  const copyCode = (code) => {
+    Clipboard.setString(code);
+    setCopiedCode(code);
+    setTimeout(() => setCopiedCode(null), 2000);
+  };
+
+  const formatDiscount = (type, value) => {
+    if (type === 'percentage') return `${value}% OFF`;
+    return `R$ ${value.toFixed(2).replace('.', ',')} OFF`;
+  };
+
+  const formatDate = (dateStr) => {
+    if (!dateStr) return '';
+    return new Date(dateStr).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' });
+  };
+
+  const getDaysLeft = (dateStr) => {
+    if (!dateStr) return null;
+    const diff = new Date(dateStr) - new Date();
+    return Math.max(0, Math.ceil(diff / (1000 * 60 * 60 * 24)));
+  };
+
+  if (loading) {
     return (
-      <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
-        <ActivityIndicator size="large" color={colors.accent} />
+      <View style={{ flex: 1, backgroundColor: C.bg, justifyContent: 'center', alignItems: 'center' }}>
+        <ActivityIndicator size="large" color={C.accent} />
       </View>
     );
   }
 
   return (
-    <ScrollView style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>Promoções</Text>
-      </View>
+    <ScrollView
+      style={{ flex: 1, backgroundColor: C.bg }}
+      contentContainerStyle={{ padding: 16, paddingBottom: 40 }}
+      showsVerticalScrollIndicator={false}
+      refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={C.accent} />}
+    >
+      {/* Header */}
+      <Text style={{ fontSize: 22, fontWeight: '800', color: C.textPrimary, marginBottom: 4 }}>
+        Promoções 🎁
+      </Text>
+      <Text style={{ fontSize: 13, color: C.textSecondary, marginBottom: 24 }}>
+        Ofertas exclusivas e cupons de desconto
+      </Text>
 
-      <View style={styles.content}>
-        {/* Aplicar código promocional */}
-        <View style={styles.promoCard}>
-          <Text style={styles.promoEmoji}>🎟️</Text>
-          <Text style={styles.promoTitle}>Aplicar Código Promocional</Text>
-          <Text style={styles.promoDescription}>
-            Digite seu código e selecione o plano para aplicar o desconto
-          </Text>
-
+      {/* Campo de cupom */}
+      <View style={{ backgroundColor: C.card, borderRadius: 16, padding: 16, marginBottom: 20, borderWidth: 1, borderColor: C.border }}>
+        <Text style={{ fontSize: 14, fontWeight: '700', color: C.textPrimary, marginBottom: 4 }}>
+          🎟️ Tem um cupom?
+        </Text>
+        <Text style={{ fontSize: 12, color: C.textSecondary, marginBottom: 14 }}>
+          Digite o código e aplique o desconto na sua assinatura
+        </Text>
+        <View style={{ flexDirection: 'row', gap: 10 }}>
           <TextInput
-            style={styles.promoCodeInput}
-            placeholder="Digite o código promocional"
-            placeholderTextColor={colors.textSecondary}
-            value={promoCode}
-            onChangeText={setPromoCode}
+            style={{
+              flex: 1, backgroundColor: C.input, borderRadius: 12,
+              borderWidth: 1, borderColor: C.border,
+              paddingHorizontal: 14, height: 48, fontSize: 15,
+              color: C.textPrimary, letterSpacing: 2, fontWeight: '700',
+            }}
+            placeholder="EX: PROMO20"
+            placeholderTextColor={C.textSecondary}
+            value={couponCode}
+            onChangeText={t => setCouponCode(t.toUpperCase())}
             autoCapitalize="characters"
             autoCorrect={false}
           />
-
-          <View style={styles.planSelector}>
-            <Text style={styles.planSelectorTitle}>Selecione o plano:</Text>
-            {plans.map((plan) => (
-              <TouchableOpacity
-                key={plan.id}
-                style={[
-                  styles.planOption,
-                  selectedPlan === plan.id && styles.planOptionSelected
-                ]}
-                onPress={() => setSelectedPlan(plan.id)}
-              >
-                <MaterialIcons
-                  name={selectedPlan === plan.id ? "radio-button-checked" : "radio-button-unchecked"}
-                  size={20}
-                  color={selectedPlan === plan.id ? colors.accent : colors.textSecondary}
-                />
-                <Text style={styles.planOptionText}>
-                  {plan.name} - R$ {plan.price_monthly}/mês
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-
           <TouchableOpacity
-            style={styles.applyButton}
-            onPress={handleApplyPromotion}
-            disabled={isApplying}
+            onPress={handleApplyCoupon}
+            disabled={applying}
+            style={{
+              backgroundColor: C.accent, borderRadius: 12,
+              paddingHorizontal: 20, justifyContent: 'center', alignItems: 'center',
+            }}
           >
-            {isApplying ? (
-              <ActivityIndicator color="#FFFFFF" />
-            ) : (
-              <Text style={styles.applyButtonText}>Aplicar Código</Text>
-            )}
+            {applying
+              ? <ActivityIndicator color="#fff" size="small" />
+              : <Text style={{ color: '#fff', fontWeight: '800', fontSize: 14 }}>Aplicar</Text>
+            }
           </TouchableOpacity>
         </View>
-
-        {/* Lista de promoções ativas */}
-        {promotions.length > 0 && (
-          <>
-            <Text style={[styles.headerTitle, { marginBottom: 16, textAlign: 'left' }]}>
-              Promoções Ativas
-            </Text>
-            {promotions.map(renderPromotionCard)}
-          </>
-        )}
-
-        {promotions.length === 0 && !promotionsLoading && (
-          <View style={styles.promoCard}>
-            <Text style={styles.promoEmoji}>😔</Text>
-            <Text style={styles.promoTitle}>Nenhuma promoção ativa</Text>
-            <Text style={styles.promoDescription}>
-              No momento não há promoções disponíveis. Fique ligado para as próximas ofertas!
-            </Text>
-          </View>
-        )}
       </View>
+
+      {/* Promoções ativas */}
+      {promos.length > 0 && (
+        <>
+          <Text style={{ fontSize: 14, fontWeight: '700', color: C.textPrimary, marginBottom: 12 }}>
+            🔥 Promoções ativas
+          </Text>
+          {promos.map((promo) => {
+            const days = getDaysLeft(promo.valid_until);
+            const isUrgent = days !== null && days <= 3;
+            return (
+              <View key={promo.id} style={{
+                backgroundColor: C.accentSoft, borderRadius: 16, padding: 16,
+                marginBottom: 12, borderWidth: 1, borderColor: C.accent + '30',
+              }}>
+                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 8 }}>
+                  <View style={{ flex: 1 }}>
+                    <Text style={{ fontSize: 16, fontWeight: '800', color: C.textPrimary }}>
+                      {promo.name}
+                    </Text>
+                    <Text style={{ fontSize: 12, color: C.textSecondary, marginTop: 2 }}>
+                      {promo.description}
+                    </Text>
+                  </View>
+                  <View style={{ backgroundColor: C.accent, borderRadius: 10, paddingHorizontal: 12, paddingVertical: 6, marginLeft: 10 }}>
+                    <Text style={{ fontSize: 14, fontWeight: '900', color: '#fff' }}>
+                      {formatDiscount(promo.discount_type, promo.discount_value)}
+                    </Text>
+                  </View>
+                </View>
+
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 4 }}>
+                  <MaterialIcons
+                    name="timer"
+                    size={13}
+                    color={isUrgent ? C.accent : C.textSecondary}
+                  />
+                  <Text style={{ fontSize: 12, color: isUrgent ? C.accent : C.textSecondary, fontWeight: isUrgent ? '700' : '400' }}>
+                    {days === 0
+                      ? 'Expira hoje!'
+                      : days === 1
+                      ? 'Expira amanhã!'
+                      : `Válido até ${formatDate(promo.valid_until)}`
+                    }
+                  </Text>
+                  {promo.max_uses && (
+                    <Text style={{ fontSize: 12, color: C.textSecondary, marginLeft: 8 }}>
+                      • {promo.max_uses - promo.used_count} restantes
+                    </Text>
+                  )}
+                </View>
+              </View>
+            );
+          })}
+        </>
+      )}
+
+      {/* Cupons disponíveis */}
+      {coupons.length > 0 && (
+        <>
+          <Text style={{ fontSize: 14, fontWeight: '700', color: C.textPrimary, marginTop: promos.length > 0 ? 8 : 0, marginBottom: 12 }}>
+            🏷️ Seus cupons
+          </Text>
+          {coupons.map((coupon, i) => {
+            const days = getDaysLeft(coupon.end_date);
+            const copied = copiedCode === coupon.code;
+            return (
+              <View key={i} style={{
+                backgroundColor: C.greenSoft, borderRadius: 16, padding: 16,
+                marginBottom: 12, borderWidth: 1, borderColor: C.green + '30',
+              }}>
+                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+                  <View style={{ flex: 1 }}>
+                    <Text style={{ fontSize: 13, color: C.textSecondary, marginBottom: 4 }}>
+                      {coupon.description || 'Desconto especial'}
+                    </Text>
+                    <Text style={{ fontSize: 18, fontWeight: '900', color: C.green, letterSpacing: 2 }}>
+                      {coupon.code}
+                    </Text>
+                  </View>
+                  <View style={{ backgroundColor: C.green + '20', borderRadius: 10, paddingHorizontal: 12, paddingVertical: 6 }}>
+                    <Text style={{ fontSize: 14, fontWeight: '900', color: C.green }}>
+                      {coupon.discount_type && coupon.discount_value
+                        ? formatDiscount(coupon.discount_type, coupon.discount_value)
+                        : 'DESCONTO'
+                      }
+                    </Text>
+                  </View>
+                </View>
+
+                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                  {coupon.end_date ? (
+                    <Text style={{ fontSize: 12, color: C.textSecondary }}>
+                      Válido até {formatDate(coupon.end_date)}
+                      {days !== null && days <= 3 && (
+                        <Text style={{ color: C.accent }}> • {days === 0 ? 'Expira hoje!' : `${days}d restantes`}</Text>
+                      )}
+                    </Text>
+                  ) : (
+                    <Text style={{ fontSize: 12, color: C.textSecondary }}>Sem prazo de expiração</Text>
+                  )}
+
+                  <TouchableOpacity
+                    onPress={() => copyCode(coupon.code)}
+                    style={{
+                      flexDirection: 'row', alignItems: 'center', gap: 4,
+                      backgroundColor: copied ? C.green + '20' : C.card,
+                      borderRadius: 8, paddingHorizontal: 12, paddingVertical: 6,
+                      borderWidth: 1, borderColor: copied ? C.green + '40' : C.border,
+                    }}
+                  >
+                    <MaterialIcons
+                      name={copied ? 'check' : 'content-copy'}
+                      size={14}
+                      color={copied ? C.green : C.textSecondary}
+                    />
+                    <Text style={{ fontSize: 12, fontWeight: '700', color: copied ? C.green : C.textSecondary }}>
+                      {copied ? 'Copiado!' : 'Copiar'}
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            );
+          })}
+        </>
+      )}
+
+      {/* Estado vazio */}
+      {promos.length === 0 && coupons.length === 0 && (
+        <View style={{ backgroundColor: C.card, borderRadius: 16, padding: 40, alignItems: 'center', borderWidth: 1, borderColor: C.border }}>
+          <Text style={{ fontSize: 40, marginBottom: 16 }}>🎁</Text>
+          <Text style={{ fontSize: 16, fontWeight: '700', color: C.textPrimary, marginBottom: 8 }}>
+            Nenhuma promoção no momento
+          </Text>
+          <Text style={{ fontSize: 13, color: C.textSecondary, textAlign: 'center' }}>
+            Fique ligado! Em breve teremos ofertas exclusivas para você. Puxe para baixo para atualizar.
+          </Text>
+        </View>
+      )}
     </ScrollView>
   );
 };

@@ -10,8 +10,7 @@ import {
 import { StatusBar } from 'expo-status-bar';
 import { MaterialIcons, FontAwesome5 } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-
-import * as NavigationBar from 'expo-navigation-bar'
+import * as NavigationBar from 'expo-navigation-bar';
 
 // Componentes
 import DrawerMenu from './src/components/DrawerMenu';
@@ -33,6 +32,7 @@ import ContaScreen from './src/screens/ContaScreen';
 import PreferenciasScreen from './src/screens/PreferenciasScreen';
 import JornadaScreen from './src/screens/JornadaScreen';
 import ResumoSemanalScreen from './src/screens/ResumoSemanalScreen';
+import SemaforoScreen from './src/screens/SemaforoScreen';
 
 // Serviços e Utils
 import { checkSavedLogin, saveUserPlan } from './src/services/authService';
@@ -40,7 +40,6 @@ import { useGlobalStyles } from './src/styles/useGlobalStyles';
 import { useTheme } from './src/context/ThemeContext';
 import { useDriverSettings } from './src/hooks/useSubscription';
 import { timerService } from './src/services/sessionService';
-import SemaforoScreen from './src/screens/SemaforoScreen';
 
 export default function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -70,6 +69,13 @@ export default function App() {
     NavigationBar.setVisibilityAsync("hidden");
     NavigationBar.setBehaviorAsync("overlay-swipe");
   }, []);
+
+  // Auto-carrega preferências assim que logar
+  useEffect(() => {
+    if (isLoggedIn) {
+      refreshSettings();
+    }
+  }, [isLoggedIn]);
 
   // Sync global do timer para o FloatingTimer
   useEffect(() => {
@@ -110,7 +116,6 @@ export default function App() {
     const time = Math.floor(Math.random() * 30 + 10);
     const valuePerKm = (parseFloat(value) / parseFloat(distance)).toFixed(2);
     const trafficLight = parseFloat(valuePerKm) > 3.5 ? 'green' : parseFloat(valuePerKm) > 2.0 ? 'yellow' : 'red';
-
     setCurrentRide({
       id: Date.now().toString(),
       platform,
@@ -127,6 +132,7 @@ export default function App() {
   const handleLogin = (data) => {
     setUser(data);
     setIsLoggedIn(true);
+    // refreshSettings é disparado automaticamente pelo useEffect [isLoggedIn]
     AsyncStorage.getItem('userPlan').then(plan => setUserPlan(plan || 'free'));
   };
 
@@ -142,6 +148,12 @@ export default function App() {
       return;
     }
     setCurrentScreen(screen);
+  };
+
+  // Ao voltar das preferências recarrega os dados na home
+  const handleBackFromPreferences = () => {
+    setCurrentScreen('home');
+    refreshSettings();
   };
 
   const handleSelectPlan = async (planId) => {
@@ -178,16 +190,16 @@ export default function App() {
     }
 
     switch (currentScreen) {
-      case 'semaforo': return <SemaforoScreen />;
-      case 'novidades': return <NovidadesScreen />;
-      case 'promocoes': return <PromocoesScreen />;
+      case 'semaforo':      return <SemaforoScreen />;
+      case 'novidades':     return <NovidadesScreen />;
+      case 'promocoes':     return <PromocoesScreen />;
       case 'configuracoes': return <ConfiguracoesScreen />;
-      case 'suporte': return <SuporteScreen />;
-      case 'conta': return <ContaScreen user={user} userPlan={userPlan} onLogout={() => setCurrentScreen('logout')} onUpgradeClick={() => setShowPaymentScreen(true)} />;
-      case 'preferencias': return <PreferenciasScreen navigation={{ goBack: () => setCurrentScreen('home') }} />;
-      case 'jornada': return <JornadaScreen preferences={preferences} userPlan={userPlan} />;
-      case 'resumo': return <ResumoSemanalScreen preferences={preferences} />;
-      case 'corridas': return <CorridasScreen />;
+      case 'suporte':       return <SuporteScreen />;
+      case 'conta':         return <ContaScreen user={user} userPlan={userPlan} onLogout={() => handleNavigate('logout')} onUpgradeClick={() => setShowPaymentScreen(true)} />;
+      case 'preferencias':  return <PreferenciasScreen navigation={{ goBack: handleBackFromPreferences }} />;
+      case 'jornada':       return <JornadaScreen preferences={preferences} userPlan={userPlan} />;
+      case 'resumo':        return <ResumoSemanalScreen preferences={preferences} />;
+      case 'corridas':      return <CorridasScreen />;
       default: return (
         <HomeScreen
           user={user}
@@ -227,7 +239,6 @@ export default function App() {
         {renderScreen()}
       </View>
 
-      {/* Ponto flutuante do cronômetro — aparece em todas as telas exceto Jornada */}
       <FloatingTimer
         elapsed={timerElapsed}
         isRunning={timerRunning}

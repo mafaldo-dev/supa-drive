@@ -3,7 +3,7 @@ import {
   View, Text, ScrollView, TouchableOpacity,
   Switch, StyleSheet, Dimensions, FlatList, Alert, RefreshControl,
 } from 'react-native';
-import { FontAwesome5, MaterialIcons, Ionicons } from '@expo/vector-icons';
+import { FontAwesome5, MaterialIcons } from '@expo/vector-icons';
 import { useTheme } from '../context/ThemeContext';
 import { useSubscription } from '../hooks/useSubscription';
 
@@ -48,154 +48,146 @@ const HomeScreen = ({
     // Boas vindas
     welcomeRow: {
       flexDirection: 'row', justifyContent: 'space-between',
-      alignItems: 'center', marginBottom: 20,
+      alignItems: 'center', marginBottom: 24,
     },
     welcomeLeft: { flex: 1 },
-    greetingText: { fontSize: 13, color: C.textSecondary, fontWeight: '500', marginBottom: 2 },
-    nameText: { fontSize: 24, fontWeight: '800', color: C.textPrimary, letterSpacing: -0.5 },
+    greetingText: { fontSize: 15, color: C.textSecondary, fontWeight: '500', marginBottom: 4 },
+    nameText: { fontSize: 28, fontWeight: '800', color: C.textPrimary, letterSpacing: -0.5 },
     planBadge: {
-      flexDirection: 'row', alignItems: 'center', gap: 5,
+      flexDirection: 'row', alignItems: 'center', gap: 6,
       backgroundColor: isPremium ? 'rgba(255,215,0,0.15)' : C.accentSoft,
-      paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20,
+      paddingHorizontal: 14, paddingVertical: 8, borderRadius: 20,
       borderWidth: 1, borderColor: isPremium ? 'rgba(255,215,0,0.3)' : 'rgba(255,107,107,0.2)',
     },
     planBadgeText: {
-      fontSize: 12, fontWeight: '700',
+      fontSize: 13, fontWeight: '700',
       color: isPremium ? C.gold : C.accent,
     },
 
     // Status assinatura
     subCard: {
       backgroundColor: isPremium ? 'rgba(74,222,128,0.08)' : C.accentSoft,
-      borderRadius: 16, padding: 16, marginBottom: 20,
+      borderRadius: 16, padding: 18, marginBottom: 24,
       borderWidth: 1, borderColor: isPremium ? 'rgba(74,222,128,0.2)' : 'rgba(255,107,107,0.15)',
       flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
     },
     subCardLeft: { flex: 1 },
-    subCardTitle: { fontSize: 14, fontWeight: '700', color: C.textPrimary, marginBottom: 3 },
-    subCardSub: { fontSize: 12, color: C.textSecondary },
+    subCardTitle: { fontSize: 15, fontWeight: '700', color: C.textPrimary, marginBottom: 4 },
+    subCardSub: { fontSize: 13, color: C.textSecondary },
     subCardBtn: {
       backgroundColor: C.accent, borderRadius: 10,
-      paddingHorizontal: 14, paddingVertical: 8,
+      paddingHorizontal: 16, paddingVertical: 10,
     },
-    subCardBtnText: { color: '#fff', fontSize: 12, fontWeight: '700' },
+    subCardBtnText: { color: '#fff', fontSize: 13, fontWeight: '700' },
 
     // Carrossel
     carouselLabel: {
-      fontSize: 12, fontWeight: '600', color: C.textSecondary,
+      fontSize: 13, fontWeight: '600', color: C.textSecondary,
       letterSpacing: 1.2, textTransform: 'uppercase', marginBottom: 12,
     },
     slide: {
       width: CARD_WIDTH, backgroundColor: C.card,
-      borderRadius: 20, padding: 20,
+      borderRadius: 20, padding: 24,
       borderWidth: 1, borderColor: C.border,
       shadowColor: '#000', shadowOffset: { width: 0, height: 4 },
       shadowOpacity: isDark ? 0.3 : 0.08, shadowRadius: 12, elevation: 5,
     },
     slideHeader: {
-      flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 16,
+      flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 20,
     },
     slideIconBox: {
-      width: 36, height: 36, borderRadius: 10,
+      width: 42, height: 42, borderRadius: 12,
       backgroundColor: C.accentSoft, alignItems: 'center', justifyContent: 'center',
     },
-    slideTitle: { fontSize: 16, fontWeight: '700', color: C.textPrimary },
+    slideTitle: { fontSize: 18, fontWeight: '700', color: C.textPrimary },
 
     // Preferências grid
-    prefGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 8 },
+    prefGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginBottom: 8 },
     prefCell: {
       width: '31%', backgroundColor: C.card2,
-      borderRadius: 10, padding: 10,
+      borderRadius: 12, padding: 12,
       borderWidth: 1, borderColor: C.border,
       alignItems: 'flex-start',
     },
-    prefCellLabel: { fontSize: 10, color: C.textSecondary, marginBottom: 4 },
-    prefCellValue: { fontSize: 13, fontWeight: '800', color: C.accent },
-    prefSectionTitle: { fontSize: 11, fontWeight: '700', color: C.textSecondary, letterSpacing: 0.8, textTransform: 'uppercase', marginTop: 12, marginBottom: 6 },
-    prefRow: {
-      flexDirection: 'row', justifyContent: 'space-between',
-      alignItems: 'center', paddingVertical: 10,
-      borderBottomWidth: 1, borderBottomColor: C.border,
-    },
-    prefLabel: { fontSize: 13, color: C.textSecondary },
-    prefValue: { fontSize: 13, fontWeight: '700', color: C.accent },
+    prefCellLabel: { fontSize: 11, color: C.textSecondary, marginBottom: 6 },
+    prefCellValue: { fontSize: 15, fontWeight: '800', color: C.accent },
+    prefSectionTitle: { fontSize: 12, fontWeight: '700', color: C.textSecondary, letterSpacing: 0.8, textTransform: 'uppercase', marginTop: 14, marginBottom: 8 },
     tagsRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: 12 },
     tag: {
       backgroundColor: C.accentSoft, borderRadius: 8,
-      paddingHorizontal: 10, paddingVertical: 4,
+      paddingHorizontal: 12, paddingVertical: 6,
     },
-    tagText: { color: C.accent, fontSize: 11, fontWeight: '600' },
+    tagText: { color: C.accent, fontSize: 12, fontWeight: '600' },
     editPrefBtn: {
       flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
-      gap: 6, marginTop: 14, backgroundColor: C.accentSoft,
-      borderRadius: 10, paddingVertical: 10,
+      gap: 6, marginTop: 16, backgroundColor: C.accentSoft,
+      borderRadius: 12, paddingVertical: 12,
     },
-    editPrefBtnText: { color: C.accent, fontWeight: '700', fontSize: 13 },
+    editPrefBtnText: { color: C.accent, fontWeight: '700', fontSize: 14 },
 
     // Funcionalidades
     featureRow: {
       flexDirection: 'row', justifyContent: 'space-between',
-      alignItems: 'center', paddingVertical: 14,
+      alignItems: 'center', paddingVertical: 16,
       borderBottomWidth: 1, borderBottomColor: C.border,
     },
-    featureLeft: { flexDirection: 'row', alignItems: 'center', gap: 12, flex: 1 },
+    featureLeft: { flexDirection: 'row', alignItems: 'center', gap: 14, flex: 1 },
     featureIconBox: {
-      width: 36, height: 36, borderRadius: 10,
+      width: 42, height: 42, borderRadius: 12,
       backgroundColor: C.accentSoft, alignItems: 'center', justifyContent: 'center',
     },
     featureTextWrap: { flex: 1 },
-    featureName: { fontSize: 14, fontWeight: '600', color: C.textPrimary },
-    featureDesc: { fontSize: 11, color: C.textSecondary, marginTop: 1 },
+    featureName: { fontSize: 15, fontWeight: '600', color: C.textPrimary },
+    featureDesc: { fontSize: 12, color: C.textSecondary, marginTop: 2 },
 
     // Upgrade
     upgradeGradient: { alignItems: 'center' },
-    upgradeEmoji: { fontSize: 36, marginBottom: 10 },
-    upgradeTitle: { fontSize: 18, fontWeight: '800', color: C.textPrimary, textAlign: 'center', marginBottom: 6 },
-    upgradeSub: { fontSize: 13, color: C.textSecondary, textAlign: 'center', marginBottom: 20, lineHeight: 18 },
-    upgradeFeatures: { width: '100%', gap: 8, marginBottom: 20 },
+    upgradeEmoji: { fontSize: 44, marginBottom: 12 },
+    upgradeTitle: { fontSize: 20, fontWeight: '800', color: C.textPrimary, textAlign: 'center', marginBottom: 8 },
+    upgradeSub: { fontSize: 14, color: C.textSecondary, textAlign: 'center', marginBottom: 24, lineHeight: 20 },
+    upgradeFeatures: { width: '100%', gap: 10, marginBottom: 24 },
     upgradeFeatureRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-    upgradeFeatureText: { fontSize: 13, color: C.textPrimary },
+    upgradeFeatureText: { fontSize: 14, color: C.textPrimary },
     upgradeBtn: {
-      backgroundColor: C.accent, borderRadius: 12,
-      paddingVertical: 14, paddingHorizontal: 32, width: '100%', alignItems: 'center',
+      backgroundColor: C.accent, borderRadius: 14,
+      paddingVertical: 16, paddingHorizontal: 32, width: '100%', alignItems: 'center',
     },
-    upgradeBtnText: { color: '#fff', fontWeight: '800', fontSize: 15 },
-    upgradePrice: { fontSize: 11, color: C.textSecondary, marginTop: 8 },
+    upgradeBtnText: { color: '#fff', fontWeight: '800', fontSize: 16 },
+    upgradePrice: { fontSize: 12, color: C.textSecondary, marginTop: 10 },
 
     // Dots
-    dotsRow: { flexDirection: 'row', justifyContent: 'center', gap: 6, marginTop: 14 },
-    dot: { width: 6, height: 6, borderRadius: 3, backgroundColor: C.border },
-    dotActive: { width: 20, height: 6, borderRadius: 3, backgroundColor: C.accent },
+    dotsRow: { flexDirection: 'row', justifyContent: 'center', gap: 6, marginTop: 16 },
+    dot: { width: 7, height: 7, borderRadius: 4, backgroundColor: C.border },
+    dotActive: { width: 22, height: 7, borderRadius: 4, backgroundColor: C.accent },
 
     // Resumo financeiro
     summaryCard: {
-      backgroundColor: C.card, borderRadius: 20, padding: 20, marginTop: 20,
+      backgroundColor: C.card, borderRadius: 20, padding: 22, marginTop: 24,
       borderWidth: 1, borderColor: C.border,
       shadowColor: '#000', shadowOffset: { width: 0, height: 4 },
       shadowOpacity: isDark ? 0.3 : 0.08, shadowRadius: 12, elevation: 5,
     },
-    summaryHeader: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 16 },
+    summaryHeader: { flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 18 },
     summaryIconBox: {
-      width: 36, height: 36, borderRadius: 10,
+      width: 42, height: 42, borderRadius: 12,
       backgroundColor: 'rgba(74,222,128,0.12)', alignItems: 'center', justifyContent: 'center',
     },
-    summaryTitle: { fontSize: 16, fontWeight: '700', color: C.textPrimary },
+    summaryTitle: { fontSize: 17, fontWeight: '700', color: C.textPrimary },
     summaryRow: {
       flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
-      paddingVertical: 9, borderBottomWidth: 1, borderBottomColor: C.border,
+      paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: C.border,
     },
-    summaryRowLabel: { fontSize: 13, color: C.textSecondary },
-    summaryRowValue: { fontSize: 13, fontWeight: '600', color: C.textPrimary },
-    summaryRowNeg: { fontSize: 13, fontWeight: '600', color: '#f87171' },
-    summaryDivider: { height: 1, backgroundColor: C.border, marginVertical: 12 },
+    summaryRowLabel: { fontSize: 14, color: C.textSecondary },
+    summaryRowValue: { fontSize: 14, fontWeight: '600', color: C.textPrimary },
+    summaryRowNeg: { fontSize: 14, fontWeight: '600', color: '#f87171' },
     summaryTotal: {
       flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
-      backgroundColor: 'rgba(74,222,128,0.08)', borderRadius: 12, padding: 14,
-      borderWidth: 1, borderColor: 'rgba(74,222,128,0.2)', marginTop: 4,
+      backgroundColor: 'rgba(74,222,128,0.08)', borderRadius: 14, padding: 16,
+      borderWidth: 1, borderColor: 'rgba(74,222,128,0.2)', marginTop: 8,
     },
-    summaryTotalLabel: { fontSize: 14, fontWeight: '700', color: C.textPrimary },
-    summaryTotalValue: { fontSize: 20, fontWeight: '800', color: '#4ade80' },
-    summaryNote: { fontSize: 11, color: C.textSecondary, textAlign: 'center', marginTop: 12, fontStyle: 'italic' },
+    summaryTotalLabel: { fontSize: 15, fontWeight: '700', color: C.textPrimary },
+    summaryTotalValue: { fontSize: 22, fontWeight: '800', color: '#4ade80' },
+    summaryNote: { fontSize: 12, color: C.textSecondary, textAlign: 'center', marginTop: 14, fontStyle: 'italic' },
   });
 
   const getApps = () => {
@@ -212,33 +204,20 @@ const HomeScreen = ({
 
   const calcSummary = () => {
     if (!preferences) return null;
-
     const metaDiaria = parseFloat(preferences.target_day) || 0;
     const combustivelDia = parseFloat(preferences.fuel_day_cost) || 0;
     const ownership = preferences.car_ownership || 'proprio';
     const paymentValue = parseFloat(preferences.car_payment_value) || 0;
     const paymentType = preferences.car_payment_type || 'semanal';
-
     let custoCarro = 0;
-    let custoCarroLabel = '';
-
     if (ownership === 'alugado') {
-      if (paymentType === 'semanal') {
-        custoCarro = paymentValue / 7;
-        custoCarroLabel = `Aluguel semanal ÷ 7`;
-      } else {
-        custoCarro = paymentValue / 30;
-        custoCarroLabel = `Aluguel mensal ÷ 30`;
-      }
+      custoCarro = paymentType === 'semanal' ? paymentValue / 7 : paymentValue / 30;
     } else if (ownership === 'financiado') {
       custoCarro = paymentValue / 30;
-      custoCarroLabel = `Financiamento ÷ 30`;
     }
-
     const totalCustos = combustivelDia + custoCarro;
     const lucroLiquido = metaDiaria - totalCustos;
-
-    return { metaDiaria, combustivelDia, custoCarro, custoCarroLabel, totalCustos, lucroLiquido, ownership, paymentValue };
+    return { metaDiaria, combustivelDia, custoCarro, totalCustos, lucroLiquido, ownership, paymentValue };
   };
 
   const summary = calcSummary();
@@ -251,14 +230,13 @@ const HomeScreen = ({
         <View style={styles.slide}>
           <View style={styles.slideHeader}>
             <View style={styles.slideIconBox}>
-              <MaterialIcons name="tune" size={18} color={C.accent} />
+              <MaterialIcons name="tune" size={20} color={C.accent} />
             </View>
             <Text style={styles.slideTitle}>Preferências</Text>
           </View>
 
           {preferences ? (
             <>
-              {/* Metas — grid 3 colunas */}
               <Text style={styles.prefSectionTitle}>🎯 Metas</Text>
               <View style={styles.prefGrid}>
                 <View style={styles.prefCell}>
@@ -279,7 +257,6 @@ const HomeScreen = ({
                 </View>
               </View>
 
-              {/* Veículo — grid 3 colunas */}
               <Text style={styles.prefSectionTitle}>🚗 Veículo</Text>
               <View style={styles.prefGrid}>
                 <View style={styles.prefCell}>
@@ -310,7 +287,6 @@ const HomeScreen = ({
                 ) : null}
               </View>
 
-              {/* Apps */}
               {getApps().length > 0 && (
                 <>
                   <Text style={styles.prefSectionTitle}>📱 Apps & Categorias</Text>
@@ -321,7 +297,7 @@ const HomeScreen = ({
                       </View>
                     ))}
                     {getCategories().map(cat => (
-                      <View key={cat} style={[styles.tag, { backgroundColor: isDark ? 'rgba(100,100,200,0.15)' : 'rgba(100,100,200,0.08)', borderRadius: 8 }]}>
+                      <View key={cat} style={[styles.tag, { backgroundColor: isDark ? 'rgba(100,100,200,0.15)' : 'rgba(100,100,200,0.08)' }]}>
                         <Text style={[styles.tagText, { color: '#8888ff' }]}>{cat}</Text>
                       </View>
                     ))}
@@ -330,13 +306,13 @@ const HomeScreen = ({
               )}
             </>
           ) : (
-            <Text style={{ color: C.textSecondary, fontSize: 13, textAlign: 'center', paddingVertical: 20 }}>
+            <Text style={{ color: C.textSecondary, fontSize: 14, textAlign: 'center', paddingVertical: 24 }}>
               Nenhuma preferência configurada ainda.
             </Text>
           )}
 
           <TouchableOpacity style={styles.editPrefBtn} onPress={onNavigateToPreferences}>
-            <MaterialIcons name="edit" size={14} color={C.accent} />
+            <MaterialIcons name="edit" size={16} color={C.accent} />
             <Text style={styles.editPrefBtnText}>Editar Preferências</Text>
           </TouchableOpacity>
         </View>
@@ -348,7 +324,7 @@ const HomeScreen = ({
         <View style={styles.slide}>
           <View style={styles.slideHeader}>
             <View style={styles.slideIconBox}>
-              <MaterialIcons name="flash-on" size={18} color={C.accent} />
+              <MaterialIcons name="flash-on" size={20} color={C.accent} />
             </View>
             <Text style={styles.slideTitle}>Funcionalidades</Text>
           </View>
@@ -356,7 +332,7 @@ const HomeScreen = ({
           <View style={styles.featureRow}>
             <View style={styles.featureLeft}>
               <View style={styles.featureIconBox}>
-                <FontAwesome5 name="traffic-light" size={14} color={C.accent} />
+                <FontAwesome5 name="traffic-light" size={16} color={C.accent} />
               </View>
               <View style={styles.featureTextWrap}>
                 <Text style={styles.featureName}>Semáforo Automático</Text>
@@ -388,7 +364,7 @@ const HomeScreen = ({
           <View style={[styles.featureRow, { borderBottomWidth: 0 }]}>
             <View style={styles.featureLeft}>
               <View style={styles.featureIconBox}>
-                <MaterialIcons name="warning" size={16} color={C.accent} />
+                <MaterialIcons name="warning" size={18} color={C.accent} />
               </View>
               <View style={styles.featureTextWrap}>
                 <Text style={styles.featureName}>Alerta de Área de Risco</Text>
@@ -430,7 +406,7 @@ const HomeScreen = ({
             <TouchableOpacity style={styles.upgradeBtn} onPress={() => setShowPlanModal(true)}>
               <Text style={styles.upgradeBtnText}>Ver Planos</Text>
             </TouchableOpacity>
-            <Text style={styles.upgradePrice}>A partir de R$ 14,90/mês</Text>
+            <Text style={styles.upgradePrice}>A partir de R$ 19,90/mês</Text>
           </View>
         </View>
       )
@@ -451,7 +427,6 @@ const HomeScreen = ({
         />
       }
     >
-
       {/* Boas vindas */}
       <View style={styles.welcomeRow}>
         <View style={styles.welcomeLeft}>
@@ -459,7 +434,7 @@ const HomeScreen = ({
           <Text style={styles.nameText}>{user?.name?.split(' ')[0] || 'Motorista'}</Text>
         </View>
         <View style={styles.planBadge}>
-          <Text style={{ fontSize: 12 }}>{isPremium ? '⭐' : '🚗'}</Text>
+          <Text style={{ fontSize: 14 }}>{isPremium ? '⭐' : '🚗'}</Text>
           <Text style={styles.planBadgeText}>{isPremium ? 'Premium' : 'Grátis'}</Text>
         </View>
       </View>
@@ -522,7 +497,7 @@ const HomeScreen = ({
         <View style={styles.summaryCard}>
           <View style={styles.summaryHeader}>
             <View style={styles.summaryIconBox}>
-              <MaterialIcons name="calculate" size={18} color="#4ade80" />
+              <MaterialIcons name="calculate" size={20} color="#4ade80" />
             </View>
             <Text style={styles.summaryTitle}>Resumo do Dia</Text>
           </View>

@@ -10,10 +10,14 @@ import { BACKEND_URL } from '../utils/constants';
 import { STORAGE_KEYS } from '../utils/storage';
 import { saveUserPlan } from '../services/authService';
 
-const PRICE = 14.90;
-const stp_key = process.env.STRIPE_PUBLISHABLE_KEY; 
+const PLANS = {
+  monthly: { price: 19.90, label: '30 dias', description: 'Mensal' },
+  yearly:  { price: 129.90, label: '12 meses', description: 'Anual' },
+};
 
-const CardPaymentScreen = ({ onBack, onSuccess, setUserPlan }) => {
+const STRIPE_PUBLISHABLE_KEY = 'pk_live_SEU_TOKEN_AQUI';
+
+const CardPaymentScreen = ({ planType = 'monthly', onBack, onSuccess, setUserPlan }) => {
   const { isDark } = useTheme();
   const [cardNumber, setCardNumber] = useState('');
   const [cardName, setCardName] = useState('');
@@ -22,17 +26,19 @@ const CardPaymentScreen = ({ onBack, onSuccess, setUserPlan }) => {
   const [loading, setLoading] = useState(false);
   const [paid, setPaid] = useState(false);
 
+  const plan = PLANS[planType] || PLANS.monthly;
+
   const C = {
     bg: isDark ? '#0d0d14' : '#f0f0f7',
     card: isDark ? '#1a1a2e' : '#ffffff',
     border: isDark ? 'rgba(255,255,255,0.07)' : 'rgba(0,0,0,0.06)',
-    borderFocus: '#FF6B6B',
     textPrimary: isDark ? '#f0f0f0' : '#1a1a2e',
     textSecondary: isDark ? '#8888aa' : '#888899',
     accent: '#FF6B6B',
     green: '#4ade80',
     input: isDark ? '#16213e' : '#ffffff',
     accentSoft: isDark ? 'rgba(255,107,107,0.12)' : 'rgba(255,107,107,0.08)',
+    greenSoft: isDark ? 'rgba(74,222,128,0.12)' : 'rgba(74,222,128,0.1)',
   };
 
   const formatCardNumber = (text) => {
@@ -48,9 +54,9 @@ const CardPaymentScreen = ({ onBack, onSuccess, setUserPlan }) => {
 
   const getCardBrand = () => {
     const num = cardNumber.replace(/\s/g, '');
-    if (num.startsWith('4')) return 'visa';
-    if (/^5[1-5]/.test(num)) return 'mastercard';
-    if (/^3[47]/.test(num)) return 'amex';
+    if (num.startsWith('4')) return 'VISA';
+    if (/^5[1-5]/.test(num)) return 'MASTER';
+    if (/^3[47]/.test(num)) return 'AMEX';
     return null;
   };
 
@@ -67,12 +73,11 @@ const CardPaymentScreen = ({ onBack, onSuccess, setUserPlan }) => {
     if (!validateFields()) return;
     setLoading(true);
     try {
-      // 1. Tokeniza o cartão direto no Stripe (sem passar dados pelo backend)
       const [expMonth, expYear] = expiry.split('/');
       const stripeRes = await fetch('https://api.stripe.com/v1/tokens', {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${stp_key}`,
+          'Authorization': `Bearer ${STRIPE_PUBLISHABLE_KEY}`,
           'Content-Type': 'application/x-www-form-urlencoded',
         },
         body: [
@@ -87,17 +92,14 @@ const CardPaymentScreen = ({ onBack, onSuccess, setUserPlan }) => {
       const stripeData = await stripeRes.json();
       if (stripeData.error) throw new Error(stripeData.error.message);
 
-      const token = stripeData.id; // ex: tok_visa
-
-      // 2. Envia o token pro backend que cria a cobrança
       const driverId = await AsyncStorage.getItem(STORAGE_KEYS.DRIVER_ID);
       const res = await fetch(`${BACKEND_URL}/api/payments/card/charge`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           driver_id: parseInt(driverId),
-          stripe_token: token,
-          amount: PRICE,
+          stripe_token: stripeData.id,
+          plan_type: planType,
         }),
       });
 
@@ -116,7 +118,6 @@ const CardPaymentScreen = ({ onBack, onSuccess, setUserPlan }) => {
     }
   };
 
-  // Tela de sucesso
   if (paid) {
     return (
       <View style={{ flex: 1, backgroundColor: C.bg, justifyContent: 'center', alignItems: 'center', padding: 32 }}>
@@ -127,13 +128,16 @@ const CardPaymentScreen = ({ onBack, onSuccess, setUserPlan }) => {
           Pagamento confirmado!
         </Text>
         <Text style={{ fontSize: 14, color: C.textSecondary, textAlign: 'center' }}>
-          Seu plano Premium está ativo por 30 dias. 🎉
+          Seu plano Premium {plan.description} está ativo por {plan.label}. 🎉
         </Text>
       </View>
     );
   }
 
   const brand = getCardBrand();
+  const isYearly = planType === 'yearly';
+  const priceColor = isYearly ? C.green : C.accent;
+  const priceSoft = isYearly ? C.greenSoft : C.accentSoft;
 
   return (
     <ScrollView
@@ -142,7 +146,6 @@ const CardPaymentScreen = ({ onBack, onSuccess, setUserPlan }) => {
       keyboardShouldPersistTaps="handled"
       showsVerticalScrollIndicator={false}
     >
-      {/* Header */}
       <TouchableOpacity onPress={onBack} style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 20, gap: 8 }}>
         <MaterialIcons name="arrow-back" size={22} color={C.textPrimary} />
         <Text style={{ fontSize: 14, color: C.textPrimary, fontWeight: '600' }}>Voltar ao PIX</Text>
@@ -156,18 +159,28 @@ const CardPaymentScreen = ({ onBack, onSuccess, setUserPlan }) => {
       </Text>
 
       {/* Valor */}
-      <View style={{ backgroundColor: C.accentSoft, borderRadius: 16, padding: 16, alignItems: 'center', marginBottom: 24, borderWidth: 1, borderColor: C.accent + '30' }}>
-        <Text style={{ fontSize: 13, color: C.textSecondary, marginBottom: 4 }}>Valor a cobrar</Text>
-        <Text style={{ fontSize: 32, fontWeight: '800', color: C.accent }}>
-          R$ {PRICE.toFixed(2).replace('.', ',')}
+      <View style={{
+        backgroundColor: priceSoft, borderRadius: 16, padding: 16,
+        alignItems: 'center', marginBottom: 24,
+        borderWidth: 1, borderColor: priceColor + '30',
+      }}>
+        <Text style={{ fontSize: 13, color: C.textSecondary, marginBottom: 4 }}>
+          Plano {plan.description} — {plan.label}
         </Text>
-        <Text style={{ fontSize: 12, color: C.textSecondary, marginTop: 4 }}>Plano Premium — 30 dias</Text>
+        <Text style={{ fontSize: 32, fontWeight: '800', color: priceColor }}>
+          R$ {plan.price.toFixed(2).replace('.', ',')}
+        </Text>
+        {isYearly && (
+          <View style={{ backgroundColor: C.green, borderRadius: 6, paddingHorizontal: 10, paddingVertical: 3, marginTop: 8 }}>
+            <Text style={{ fontSize: 11, fontWeight: '800', color: '#0d0d14' }}>ECONOMIZE 46%</Text>
+          </View>
+        )}
       </View>
 
       {/* Formulário */}
       <View style={{ backgroundColor: C.card, borderRadius: 20, padding: 20, borderWidth: 1, borderColor: C.border, gap: 16 }}>
 
-        {/* Número do cartão */}
+        {/* Número */}
         <View>
           <Text style={{ fontSize: 12, fontWeight: '700', color: C.textSecondary, marginBottom: 8, textTransform: 'uppercase', letterSpacing: 0.8 }}>
             Número do cartão
@@ -182,11 +195,7 @@ const CardPaymentScreen = ({ onBack, onSuccess, setUserPlan }) => {
               keyboardType="numeric"
               maxLength={19}
             />
-            {brand && (
-              <Text style={{ fontSize: 11, fontWeight: '800', color: C.accent }}>
-                {brand.toUpperCase()}
-              </Text>
-            )}
+            {brand && <Text style={{ fontSize: 11, fontWeight: '800', color: priceColor }}>{brand}</Text>}
           </View>
         </View>
 
@@ -239,7 +248,6 @@ const CardPaymentScreen = ({ onBack, onSuccess, setUserPlan }) => {
         </View>
       </View>
 
-      {/* Segurança */}
       <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, marginTop: 16, marginBottom: 24 }}>
         <MaterialIcons name="lock" size={14} color={C.textSecondary} />
         <Text style={{ fontSize: 12, color: C.textSecondary }}>
@@ -247,12 +255,11 @@ const CardPaymentScreen = ({ onBack, onSuccess, setUserPlan }) => {
         </Text>
       </View>
 
-      {/* Botão pagar */}
       <TouchableOpacity
         onPress={handlePay}
         disabled={loading}
         style={{
-          backgroundColor: loading ? C.accent + '80' : C.accent,
+          backgroundColor: loading ? priceColor + '80' : priceColor,
           borderRadius: 16, padding: 18,
           flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10,
         }}
@@ -266,7 +273,7 @@ const CardPaymentScreen = ({ onBack, onSuccess, setUserPlan }) => {
           <>
             <MaterialIcons name="lock" size={18} color="#fff" />
             <Text style={{ color: '#fff', fontWeight: '800', fontSize: 16 }}>
-              Pagar R$ {PRICE.toFixed(2).replace('.', ',')}
+              Pagar R$ {plan.price.toFixed(2).replace('.', ',')}
             </Text>
           </>
         )}
