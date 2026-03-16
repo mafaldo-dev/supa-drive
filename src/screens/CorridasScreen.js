@@ -9,6 +9,8 @@ import { useTheme } from '../context/ThemeContext';
 import { BACKEND_URL } from '../utils/constants';
 import { STORAGE_KEYS } from '../utils/storage';
 
+import { formatCurrency, formatDuration } from '../utils/validators';
+
 const FILTROS = [
   { key: 'hoje', label: 'Hoje' },
   { key: 'semana', label: 'Semana' },
@@ -50,7 +52,7 @@ const CorridasScreen = () => {
         setSessions(Array.isArray(data) ? data : []);
       }
     } catch (e) {
-      console.log('Erro ao carregar sessões:', e);
+      console.warn('Erro ao carregar sessões:', e);
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -61,13 +63,6 @@ const CorridasScreen = () => {
     setRefreshing(true);
     loadSessions();
   }, [filtro]);
-
-  const formatDuration = (seconds) => {
-    if (!seconds) return '0min';
-    const h = Math.floor(seconds / 3600);
-    const m = Math.floor((seconds % 3600) / 60);
-    return h > 0 ? `${h}h ${m}min` : `${m}min`;
-  };
 
   const formatDate = (dateStr) => {
     if (!dateStr) return '';
@@ -81,12 +76,6 @@ const CorridasScreen = () => {
     return date.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' });
   };
 
-  const formatCurrency = (val) => {
-    if (!val) return 'R$ 0,00';
-    return `R$ ${parseFloat(val).toFixed(2).replace('.', ',')}`;
-  };
-
-  // Totais do período
   const totais = sessions.reduce((acc, s) => ({
     ganhos: acc.ganhos + (parseFloat(s.earnings) || 0),
     corridas: acc.corridas + (parseInt(s.rides_count) || 0),

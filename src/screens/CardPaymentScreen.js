@@ -10,12 +10,10 @@ import { BACKEND_URL } from '../utils/constants';
 import { STORAGE_KEYS } from '../utils/storage';
 import { saveUserPlan } from '../services/authService';
 
-const PLANS = {
-  monthly: { price: 19.90, label: '30 dias', description: 'Mensal' },
-  yearly:  { price: 129.90, label: '12 meses', description: 'Anual' },
-};
+import { formatCardNumber, validateFields, formatExpiry, getCardBrand } from '../utils/validators'
+import { PLANS } from '../utils/constants';
 
-const STRIPE_PUBLISHABLE_KEY = 'pk_live_SEU_TOKEN_AQUI';
+const STRIPE_PUBLISHABLE_KEY = process.env.STRIPE_PUBLISHABLE_KEY;
 
 const CardPaymentScreen = ({ planType = 'monthly', onBack, onSuccess, setUserPlan }) => {
   const { isDark } = useTheme();
@@ -41,33 +39,6 @@ const CardPaymentScreen = ({ planType = 'monthly', onBack, onSuccess, setUserPla
     greenSoft: isDark ? 'rgba(74,222,128,0.12)' : 'rgba(74,222,128,0.1)',
   };
 
-  const formatCardNumber = (text) => {
-    const clean = text.replace(/\D/g, '').slice(0, 16);
-    return clean.replace(/(.{4})/g, '$1 ').trim();
-  };
-
-  const formatExpiry = (text) => {
-    const clean = text.replace(/\D/g, '').slice(0, 4);
-    if (clean.length >= 3) return clean.slice(0, 2) + '/' + clean.slice(2);
-    return clean;
-  };
-
-  const getCardBrand = () => {
-    const num = cardNumber.replace(/\s/g, '');
-    if (num.startsWith('4')) return 'VISA';
-    if (/^5[1-5]/.test(num)) return 'MASTER';
-    if (/^3[47]/.test(num)) return 'AMEX';
-    return null;
-  };
-
-  const validateFields = () => {
-    const num = cardNumber.replace(/\s/g, '');
-    if (num.length < 16) { Alert.alert('Atenção', 'Número do cartão inválido.'); return false; }
-    if (!cardName.trim()) { Alert.alert('Atenção', 'Informe o nome no cartão.'); return false; }
-    if (expiry.length < 5) { Alert.alert('Atenção', 'Data de validade inválida.'); return false; }
-    if (cvv.length < 3) { Alert.alert('Atenção', 'CVV inválido.'); return false; }
-    return true;
-  };
 
   const handlePay = async () => {
     if (!validateFields()) return;
@@ -77,7 +48,7 @@ const CardPaymentScreen = ({ planType = 'monthly', onBack, onSuccess, setUserPla
       const stripeRes = await fetch('https://api.stripe.com/v1/tokens', {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${STRIPE_PUBLISHABLE_KEY}`,
+          'Authorization': `Bearer ${STRIPE_PUBLISHABLE_KEY || process.env.STRIPE_PUBLISHABLE_KEY}`,
           'Content-Type': 'application/x-www-form-urlencoded',
         },
         body: [

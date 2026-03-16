@@ -10,19 +10,13 @@ import { BACKEND_URL } from '../utils/constants';
 import { STORAGE_KEYS } from '../utils/storage';
 import { saveUserPlan } from '../services/authService';
 import CardPaymentScreen from './CardPaymentScreen';
-
-const PLANS = {
-  monthly: { price: 19.90, label: '30 dias', description: 'Mensal', badge: null },
-  yearly:  { price: 129.90, label: '12 meses', description: 'Anual', badge: 'ECONOMIZE 46%' },
-};
+import { PLANS } from '../utils/constants';
 
 const EXPIRY_SECONDS = 1800;
 const POLL_INTERVAL = 5000;
 
 const PixPaymentScreen = ({ onBack, onSuccess, setUserPlan }) => {
   const { isDark } = useTheme();
-
-  // Seleção de plano — começa na tela de escolha
   const [planType, setPlanType] = useState(null); // null = tela de seleção
   const [loading, setLoading] = useState(false);
   const [pixData, setPixData] = useState(null);

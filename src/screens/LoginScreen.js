@@ -15,8 +15,6 @@ import { useTheme } from '../context/ThemeContext';
 import { WEB_CLIENT_ID } from '../utils/constants';
 import { handleGoogleToken } from '../services/authService';
 
-
-
 const LoginScreen = ({ onLogin }) => {
   const [loading, setLoading] = useState(false);
   const fadeAnim = useRef(new Animated.Value(0)).current;
@@ -28,7 +26,7 @@ const LoginScreen = ({ onLogin }) => {
     GoogleSignin.configure({ 
       webClientId: WEB_CLIENT_ID,
       offlineAccess: true,
-      scopes: ['profile', 'email'], // Escopos para pegar mais informações
+      scopes: ['profile', 'email'], 
     });
     
     Animated.parallel([
@@ -42,8 +40,7 @@ const LoginScreen = ({ onLogin }) => {
     try {
       await GoogleSignin.hasPlayServices();
       const userInfo = await GoogleSignin.signIn();
-      
-      // Pega o token e os dados do usuário
+
       const token = userInfo.data?.idToken || userInfo.idToken;
       const userData = userInfo.data?.user || userInfo.user;
       
@@ -53,7 +50,6 @@ const LoginScreen = ({ onLogin }) => {
         return;
       }
 
-      // Monta o objeto com todos os dados do usuário
       const googleUserData = {
         givenName: userData?.givenName || userData?.name?.split(' ')[0] || '',
         name: userData?.name || '',
@@ -62,7 +58,6 @@ const LoginScreen = ({ onLogin }) => {
         familyName: userData?.familyName || '',
       };
 
-      // Passa os dados do usuário junto com o token
       await handleGoogleToken(token, googleUserData, setLoading, onLogin);
       
     } catch (error) {

@@ -1,32 +1,28 @@
 import React, { useState, useEffect, useRef } from 'react';
 import {
   View, Text, ScrollView, TouchableOpacity, TextInput,
-  StyleSheet, Alert, Modal, ActivityIndicator, AppState,
+   Alert, Modal, ActivityIndicator, AppState,
   Switch, Animated,
 } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useTheme } from '../context/ThemeContext';
 import { timerService, sessionService } from '../services/sessionService';
-import { notificationService } from '../services/notificationService';
+
+import { useJornadaStyles } from '../styles/jornadaStyles'
 import { nativeService } from '../services/nativeService';
+import { formatDuration } from '../utils/validators';
 
 const NOTIF_PREFS_KEY = 'jornada_notif_prefs';
 const FLOATING_KEY = 'jornada_floating';
 
-const formatDuration = (seconds) => {
-  const h = Math.floor(seconds / 3600);
-  const m = Math.floor((seconds % 3600) / 60);
-  const s = seconds % 60;
-  return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
-};
 
 const formatDate = (dateStr) => {
   const d = new Date(dateStr + 'T00:00:00');
   return d.toLocaleDateString('pt-BR', { weekday: 'short', day: '2-digit', month: '2-digit' });
 };
 
-const CircularTimer = ({ elapsed, isRunning, isPaused, C, isDark }) => {
+const CircularTimer = ({ elapsed, isRunning, isPaused, colors, isDark }) => {
   const pulseAnim = useRef(new Animated.Value(1)).current;
 
   useEffect(() => {
@@ -87,7 +83,6 @@ const CircularTimer = ({ elapsed, isRunning, isPaused, C, isDark }) => {
 };
 
 const JornadaScreen = ({ preferences, userPlan }) => {
-  const { isDark } = useTheme();
   const [isRunning, setIsRunning] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
   const [elapsed, setElapsed] = useState(0);
@@ -101,22 +96,24 @@ const JornadaScreen = ({ preferences, userPlan }) => {
   const [pushEnabled, setPushEnabled] = useState(false);
   const [voiceEnabled, setVoiceEnabled] = useState(false);
   const [floatingEnabled, setFloatingEnabled] = useState(false);
-
+  const styles = useJornadaStyles()
+  const { colors } = useTheme();
+  
   const C = {
-    bg: isDark ? '#0d0d14' : '#f0f0f7',
-    card: isDark ? '#1a1a2e' : '#ffffff',
-    card2: isDark ? '#16213e' : '#f8f8ff',
-    border: isDark ? 'rgba(255,255,255,0.07)' : 'rgba(0,0,0,0.06)',
-    textPrimary: isDark ? '#f0f0f0' : '#1a1a2e',
-    textSecondary: isDark ? '#8888aa' : '#888899',
+    bg: colors ? '#0d0d14' : '#f0f0f7',
+    card: colors ? '#1a1a2e' : '#ffffff',
+    card2: colors ? '#16213e' : '#f8f8ff',
+    border: colors ? 'rgba(255,255,255,0.07)' : 'rgba(0,0,0,0.06)',
+    textPrimary: colors ? '#f0f0f0' : '#1a1a2e',
+    textSecondary: colors ? '#8888aa' : '#888899',
     accent: '#FF6B6B',
-    accentSoft: isDark ? 'rgba(255,107,107,0.12)' : 'rgba(255,107,107,0.08)',
+    accentSoft: colors ? 'rgba(255,107,107,0.12)' : 'rgba(255,107,107,0.08)',
     green: '#4ade80',
     greenSoft: 'rgba(74,222,128,0.1)',
-    input: isDark ? '#16213e' : '#f8f8ff',
+    input: colors ? '#16213e' : '#f8f8ff',
     overlay: 'rgba(0,0,0,0.75)',
     switchOn: '#FF6B6B',
-    switchOff: isDark ? '#333' : '#ddd',
+    switchOff: colors ? '#333' : '#ddd',
   };
 
   useEffect(() => {
@@ -281,118 +278,6 @@ const JornadaScreen = ({ preferences, userPlan }) => {
 
   const metaDiaria = parseFloat(preferences?.target_day) || 0;
 
-  const styles = StyleSheet.create({
-    container: { flex: 1, backgroundColor: C.bg },
-    content: { padding: 16, paddingBottom: 40 },
-
-    timerCard: {
-      backgroundColor: C.card, borderRadius: 24, paddingVertical: 32, paddingHorizontal: 20,
-      alignItems: 'center', marginBottom: 16,
-      borderWidth: 1, borderColor: C.border,
-      shadowColor: '#000', shadowOffset: { width: 0, height: 6 },
-      shadowOpacity: isDark ? 0.4 : 0.08, shadowRadius: 16, elevation: 8,
-    },
-    timerLabel: {
-      fontSize: 11, fontWeight: '700', color: C.textSecondary,
-      letterSpacing: 1.5, textTransform: 'uppercase', marginBottom: 24,
-    },
-    timerBtnRow: { flexDirection: 'row', gap: 12, marginTop: 28 },
-    btnStart: {
-      backgroundColor: C.green, borderRadius: 50,
-      paddingVertical: 14, paddingHorizontal: 36,
-      flexDirection: 'row', alignItems: 'center', gap: 8,
-    },
-    btnStop: {
-      backgroundColor: C.accent, borderRadius: 50,
-      paddingVertical: 14, paddingHorizontal: 28,
-      flexDirection: 'row', alignItems: 'center', gap: 8,
-    },
-    btnText: { color: '#fff', fontWeight: '800', fontSize: 15 },
-
-    switchCard: {
-      backgroundColor: C.card, borderRadius: 20, padding: 20,
-      marginBottom: 16, borderWidth: 1, borderColor: C.border,
-    },
-    switchCardTitle: {
-      fontSize: 11, fontWeight: '700', color: C.textSecondary,
-      letterSpacing: 1.2, textTransform: 'uppercase', marginBottom: 14,
-    },
-    switchRow: {
-      flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-      paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: C.border,
-    },
-    switchRowLast: {
-      flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-      paddingVertical: 12,
-    },
-    switchLeft: { flexDirection: 'row', alignItems: 'center', gap: 12, flex: 1 },
-    switchIconBox: {
-      width: 34, height: 34, borderRadius: 10,
-      backgroundColor: C.accentSoft, alignItems: 'center', justifyContent: 'center',
-    },
-    switchTextWrap: { flex: 1 },
-    switchLabel: { fontSize: 14, fontWeight: '600', color: C.textPrimary },
-    switchDesc: { fontSize: 11, color: C.textSecondary, marginTop: 1 },
-    premiumTag: {
-      backgroundColor: 'rgba(255,215,0,0.15)', borderRadius: 6,
-      paddingHorizontal: 6, paddingVertical: 2, marginLeft: 6,
-    },
-    premiumTagText: { fontSize: 9, fontWeight: '800', color: '#FFD700' },
-
-    sectionTitle: {
-      fontSize: 11, fontWeight: '700', color: C.textSecondary,
-      letterSpacing: 1.2, textTransform: 'uppercase', marginBottom: 12,
-    },
-    sessionCard: {
-      backgroundColor: C.card, borderRadius: 16, padding: 16,
-      marginBottom: 10, borderWidth: 1, borderColor: C.border,
-    },
-    sessionTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 },
-    sessionDate: { fontSize: 14, fontWeight: '700', color: C.textPrimary },
-    sessionEarningsBig: { fontSize: 20, fontWeight: '800', color: C.green },
-    sessionStats: { flexDirection: 'row', gap: 8 },
-    sessionStat: {
-      flex: 1, backgroundColor: C.card2, borderRadius: 10, padding: 10,
-      alignItems: 'center', borderWidth: 1, borderColor: C.border,
-    },
-    sessionStatVal: { fontSize: 14, fontWeight: '800', color: C.accent, marginBottom: 2 },
-    sessionStatLabel: { fontSize: 10, color: C.textSecondary },
-    progressBar: { height: 4, backgroundColor: C.border, borderRadius: 2, marginTop: 12 },
-    progressFill: { height: 4, borderRadius: 2 },
-    progressLabel: { fontSize: 10, color: C.textSecondary, marginTop: 4 },
-    emptyText: { color: C.textSecondary, fontSize: 14, textAlign: 'center', paddingVertical: 30, fontStyle: 'italic' },
-
-    modalOverlay: { flex: 1, backgroundColor: C.overlay, justifyContent: 'flex-end' },
-    modalCard: {
-      backgroundColor: C.card, borderTopLeftRadius: 28, borderTopRightRadius: 28,
-      padding: 28, paddingBottom: 40,
-    },
-    modalTitle: { fontSize: 20, fontWeight: '800', color: C.textPrimary, marginBottom: 4, textAlign: 'center' },
-    modalSub: { fontSize: 13, color: C.textSecondary, textAlign: 'center', marginBottom: 20 },
-    modalDuration: {
-      backgroundColor: C.greenSoft, borderRadius: 14, padding: 14,
-      alignItems: 'center', marginBottom: 20,
-      borderWidth: 1, borderColor: 'rgba(74,222,128,0.2)',
-    },
-    modalDurationVal: { fontSize: 32, fontWeight: '800', color: C.green },
-    modalDurationLabel: { fontSize: 11, color: C.textSecondary, marginTop: 2 },
-    modalLabel: { fontSize: 13, fontWeight: '600', color: C.textSecondary, marginBottom: 6 },
-    modalInput: {
-      backgroundColor: C.input, borderWidth: 1, borderColor: C.border,
-      borderRadius: 12, padding: 14, fontSize: 18, fontWeight: '700',
-      color: C.textPrimary, marginBottom: 14, textAlign: 'center',
-    },
-    modalBtnRow: { flexDirection: 'row', gap: 10, marginTop: 8 },
-    modalBtnSave: { flex: 2, backgroundColor: C.green, borderRadius: 14, paddingVertical: 16, alignItems: 'center' },
-    modalBtnDiscard: {
-      flex: 1, backgroundColor: C.accentSoft, borderRadius: 14, paddingVertical: 16,
-      alignItems: 'center', borderWidth: 1, borderColor: 'rgba(255,107,107,0.2)',
-    },
-    modalBtnSaveText: { color: '#fff', fontWeight: '800', fontSize: 15 },
-    modalBtnDiscardText: { color: C.accent, fontWeight: '700', fontSize: 14 },
-    modalBackBtn: { alignItems: 'center', marginTop: 16 },
-    modalBackText: { color: C.textSecondary, fontSize: 13 },
-  });
 
   return (
     <View style={styles.container}>

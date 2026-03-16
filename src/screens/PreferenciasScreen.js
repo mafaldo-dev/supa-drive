@@ -1,83 +1,19 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View, Text, ScrollView, TouchableOpacity,
-  StyleSheet, ActivityIndicator, Alert, TextInput,
+   ActivityIndicator, Alert, TextInput,
 } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useTheme } from '../context/ThemeContext';
 import { useDriverSettings } from '../hooks/useSubscription';
+import { usePreferencesStyles } from '../styles/preferenciesStyles';
+import { APPS_OPTIONS, CATS_OPTIONS } from '../utils/constants';
+import { CheckboxGroup } from '../components/CheckboxGroup';
+import { RadioGroup } from '../components/RadioGroup';
 
-// ─── Checkbox Group ───────────────────────────────────────────────────────────
-const CheckboxGroup = ({ title, options, values = {}, onChange, columns = 2 }) => {
-  const { isDark } = useTheme();
-  const C = { textPrimary: isDark ? '#f0f0f0' : '#1a1a2e', accent: '#FF6B6B' };
-  const toggle = (key) => onChange({ ...values, [key]: !values[key] });
-
-  return (
-    <View style={{ marginBottom: 16 }}>
-      {title && <Text style={{ fontSize: 14, fontWeight: '600', color: C.textPrimary, marginBottom: 10 }}>{title}</Text>}
-      <View style={{ flexDirection: 'row', flexWrap: 'wrap', marginHorizontal: -4 }}>
-        {Object.entries(options).map(([key, label]) => (
-          <TouchableOpacity key={key} onPress={() => toggle(key)}
-            style={{ width: `${100 / columns}%`, paddingHorizontal: 4, marginBottom: 10 }}>
-            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-              <View style={{
-                width: 22, height: 22, borderRadius: 4, borderWidth: 2,
-                borderColor: C.accent, justifyContent: 'center', alignItems: 'center',
-                marginRight: 8, backgroundColor: values[key] ? C.accent : 'transparent',
-              }}>
-                {values[key] && <MaterialIcons name="check" size={14} color="#fff" />}
-              </View>
-              <Text style={{ fontSize: 13, color: C.textPrimary }}>{label}</Text>
-            </View>
-          </TouchableOpacity>
-        ))}
-      </View>
-    </View>
-  );
-};
-
-// ─── Radio Group ──────────────────────────────────────────────────────────────
-const RadioGroup = ({ title, options, value, onChange }) => {
-  const { isDark } = useTheme();
-  const C = {
-    textPrimary: isDark ? '#f0f0f0' : '#1a1a2e',
-    textSecondary: isDark ? '#8888aa' : '#888899',
-    accent: '#FF6B6B',
-    border: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)',
-  };
-  return (
-    <View style={{ marginBottom: 16 }}>
-      {title && <Text style={{ fontSize: 14, fontWeight: '600', color: C.textPrimary, marginBottom: 10 }}>{title}</Text>}
-      <View style={{ flexDirection: 'row', gap: 10 }}>
-        {options.map((opt) => (
-          <TouchableOpacity key={opt.value} onPress={() => onChange(opt.value)} style={{
-            flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
-            paddingVertical: 10, borderRadius: 10, gap: 8,
-            backgroundColor: value === opt.value ? 'rgba(255,107,107,0.12)' : 'transparent',
-            borderWidth: 1.5, borderColor: value === opt.value ? C.accent : C.border,
-          }}>
-            <View style={{ width: 18, height: 18, borderRadius: 9, borderWidth: 2, borderColor: C.accent, alignItems: 'center', justifyContent: 'center' }}>
-              {value === opt.value && <View style={{ width: 9, height: 9, borderRadius: 5, backgroundColor: C.accent }} />}
-            </View>
-            <Text style={{ fontSize: 13, fontWeight: '600', color: value === opt.value ? C.accent : C.textSecondary }}>{opt.label}</Text>
-          </TouchableOpacity>
-        ))}
-      </View>
-    </View>
-  );
-};
-
-// ─── Main Screen ─────────────────────────────────────────────────────────────
 const PreferenciasScreen = ({ navigation }) => {
   const { isDark } = useTheme();
   const { settings, isLoading, updateSettings } = useDriverSettings();
-
-  const APPS_OPTIONS = { uber: 'Uber', '99': '99', indrive: 'inDrive', lalamove: 'Lalamove' };
-  const CATS_OPTIONS = {
-    uberx: 'UberX', '99pop': '99Pop', comfort: 'Comfort',
-    black: 'Black', entregas: 'Entregas', taxi: 'Taxi', flash: 'Flash', vip: 'VIP',
-  };
 
   const parseList = (val) => {
     if (!val) return {};
@@ -107,7 +43,6 @@ const PreferenciasScreen = ({ navigation }) => {
     categories: {},
   });
 
-  // Popula o formData quando os dados do backend chegarem
   useEffect(() => {
     if (settings) {
       setFormData({
@@ -145,49 +80,8 @@ const PreferenciasScreen = ({ navigation }) => {
     success: '#4ade80',
     danger: '#f87171',
   };
-
-  const styles = useMemo(() => StyleSheet.create({
-    container: { flex: 1, backgroundColor: C.bg },
-    loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: C.bg },
-    header: {
-      flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-      paddingHorizontal: 16, paddingTop: 50, paddingBottom: 16,
-      backgroundColor: C.header, borderBottomWidth: 1, borderBottomColor: C.border,
-    },
-    headerTitle: { fontSize: 18, fontWeight: '700', color: C.textPrimary },
-    content: { padding: 16 },
-    section: {
-      backgroundColor: C.card, borderRadius: 16, padding: 16,
-      marginBottom: 16, borderWidth: 1, borderColor: C.border,
-    },
-    sectionTitle: {
-      fontSize: 15, fontWeight: '700', color: C.textPrimary,
-      marginBottom: 16, paddingBottom: 10,
-      borderBottomWidth: 1, borderBottomColor: C.border,
-    },
-    label: { fontSize: 13, fontWeight: '600', color: C.textSecondary, marginBottom: 5 },
-    input: {
-      backgroundColor: C.input, borderWidth: 1, borderColor: C.border,
-      borderRadius: 10, padding: 12, fontSize: 15, color: C.textPrimary, marginBottom: 12,
-    },
-    valueBox: {
-      backgroundColor: C.accentSoft, borderRadius: 10, padding: 12,
-      marginBottom: 12, borderWidth: 1, borderColor: 'rgba(255,107,107,0.15)',
-    },
-    valueText: { fontSize: 15, fontWeight: '700', color: C.accent },
-    valueTextPlain: { fontSize: 15, color: C.textPrimary },
-    tagsRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: 6 },
-    tag: { backgroundColor: C.accentSoft, borderRadius: 8, paddingHorizontal: 10, paddingVertical: 5 },
-    tagText: { color: C.accent, fontSize: 12, fontWeight: '600' },
-    emptyText: { color: C.textSecondary, fontSize: 13, fontStyle: 'italic' },
-    btnRow: { flexDirection: 'row', gap: 10, marginTop: 8, marginBottom: 32 },
-    btn: { flex: 1, borderRadius: 12, paddingVertical: 14, alignItems: 'center', justifyContent: 'center' },
-    btnEdit: { backgroundColor: C.accent },
-    btnSave: { backgroundColor: C.success, flex: 2 },
-    btnCancel: { backgroundColor: C.danger, flex: 1 },
-    btnText: { color: '#fff', fontWeight: '700', fontSize: 15 },
-  }), [isDark]);
-
+  const styles = usePreferencesStyles();
+  
   const fmt = (v) => `R$ ${Number(v || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
   const getTagLabels = (objValues, optionsMap) =>
     Object.entries(objValues || {}).filter(([, v]) => v).map(([k]) => optionsMap[k] || k);

@@ -1,62 +1,32 @@
 import React, { useState, useEffect } from 'react';
 import {
-  View, Text, ScrollView, TouchableOpacity,
-  StyleSheet, ActivityIndicator, RefreshControl,
+  View, Text, ScrollView,
+  ActivityIndicator, RefreshControl,
 } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useTheme } from '../context/ThemeContext';
 import { sessionService } from '../services/sessionService';
+import { formatHours } from '../utils/validators';
+import { MetaBar } from '../components/MetaBar';
+import { useResumoStyles } from '../styles/ResumoStyles';
 
-const formatHours = (seconds) => {
-  const h = Math.floor(seconds / 3600);
-  const m = Math.floor((seconds % 3600) / 60);
-  return m > 0 ? `${h}h ${m}m` : `${h}h`;
-};
-
-const fmt = (v) => `R$ ${Number(v || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-
-const MetaBar = ({ label, value, meta, unit = 'R$', isDark, C }) => {
-  const progress = meta > 0 ? Math.min(value / meta, 1) : 0;
-  const pct = Math.round(progress * 100);
-  const ok = value >= meta;
-  const color = ok ? '#4ade80' : pct >= 70 ? '#facc15' : '#f87171';
-
-  return (
-    <View style={{ marginBottom: 16 }}>
-      <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 6 }}>
-        <Text style={{ fontSize: 13, color: C.textSecondary }}>{label}</Text>
-        <Text style={{ fontSize: 13, fontWeight: '700', color }}>
-          {unit === 'R$' ? fmt(value) : `${Number(value).toFixed(1)}h`}
-          {meta > 0 && <Text style={{ fontWeight: '400', color: C.textSecondary }}>
-            {' '}/ {unit === 'R$' ? fmt(meta) : `${Number(meta).toFixed(1)}h`}
-          </Text>}
-        </Text>
-      </View>
-      <View style={{ height: 6, backgroundColor: isDark ? 'rgba(255,255,255,0.07)' : 'rgba(0,0,0,0.06)', borderRadius: 3 }}>
-        <View style={{ height: 6, borderRadius: 3, backgroundColor: color, width: `${pct}%` }} />
-      </View>
-      <Text style={{ fontSize: 10, color, marginTop: 3, fontWeight: '600' }}>
-        {ok ? `✅ ${pct}% — Meta atingida!` : `${pct}% da meta`}
-      </Text>
-    </View>
-  );
-};
 
 const ResumoSemanalScreen = ({ preferences }) => {
-  const { isDark } = useTheme();
+  const { colors } = useTheme();
   const [sessions, setSessions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const styles = useResumoStyles();
 
   const C = {
-    bg: isDark ? '#0d0d14' : '#f0f0f7',
-    card: isDark ? '#1a1a2e' : '#ffffff',
-    card2: isDark ? '#16213e' : '#f8f8ff',
-    border: isDark ? 'rgba(255,255,255,0.07)' : 'rgba(0,0,0,0.06)',
-    textPrimary: isDark ? '#f0f0f0' : '#1a1a2e',
-    textSecondary: isDark ? '#8888aa' : '#888899',
+    bg: colors ? '#0d0d14' : '#f0f0f7',
+    card: colors ? '#1a1a2e' : '#ffffff',
+    card2: colors ? '#16213e' : '#f8f8ff',
+    border: colors ? 'rgba(255,255,255,0.07)' : 'rgba(0,0,0,0.06)',
+    textPrimary: colors ? '#f0f0f0' : '#1a1a2e',
+    textSecondary: colors ? '#8888aa' : '#888899',
     accent: '#FF6B6B',
-    accentSoft: isDark ? 'rgba(255,107,107,0.12)' : 'rgba(255,107,107,0.08)',
+    accentSoft: colors ? 'rgba(255,107,107,0.12)' : 'rgba(255,107,107,0.08)',
     green: '#4ade80',
     yellow: '#facc15',
   };
@@ -88,46 +58,6 @@ const ResumoSemanalScreen = ({ preferences }) => {
   const getScoreEmoji = (s) => s >= 90 ? '🏆' : s >= 70 ? '💪' : s >= 50 ? '📈' : '⚠️';
   const getScoreColor = (s) => s >= 90 ? '#4ade80' : s >= 70 ? '#facc15' : s >= 50 ? '#fb923c' : '#f87171';
 
-  const styles = StyleSheet.create({
-    container: { flex: 1, backgroundColor: C.bg },
-    content: { padding: 16, paddingBottom: 40 },
-    card: {
-      backgroundColor: C.card, borderRadius: 20, padding: 20, marginBottom: 16,
-      borderWidth: 1, borderColor: C.border,
-      shadowColor: '#000', shadowOffset: { width: 0, height: 4 },
-      shadowOpacity: isDark ? 0.3 : 0.08, shadowRadius: 12, elevation: 5,
-    },
-    cardHeader: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 16 },
-    cardIconBox: {
-      width: 36, height: 36, borderRadius: 10,
-      backgroundColor: C.accentSoft, alignItems: 'center', justifyContent: 'center',
-    },
-    cardTitle: { fontSize: 16, fontWeight: '700', color: C.textPrimary },
-    scoreBox: {
-      alignItems: 'center', backgroundColor: C.card2,
-      borderRadius: 16, padding: 20, marginBottom: 16,
-      borderWidth: 1, borderColor: C.border,
-    },
-    scoreEmoji: { fontSize: 40, marginBottom: 6 },
-    scoreNum: { fontSize: 48, fontWeight: '800', marginBottom: 4 },
-    scoreSub: { fontSize: 13, color: C.textSecondary },
-    gridRow: { flexDirection: 'row', gap: 10, marginBottom: 10 },
-    gridCell: {
-      flex: 1, backgroundColor: C.card2, borderRadius: 14, padding: 14,
-      alignItems: 'center', borderWidth: 1, borderColor: C.border,
-    },
-    gridVal: { fontSize: 18, fontWeight: '800', color: C.accent, marginBottom: 2 },
-    gridLabel: { fontSize: 11, color: C.textSecondary, textAlign: 'center' },
-    dayRow: {
-      flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
-      paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: C.border,
-    },
-    dayDate: { fontSize: 13, color: C.textSecondary, width: 80 },
-    dayHours: { fontSize: 12, color: C.textSecondary, width: 50, textAlign: 'center' },
-    dayRides: { fontSize: 12, color: C.textSecondary, width: 50, textAlign: 'center' },
-    dayEarnings: { fontSize: 14, fontWeight: '700', color: C.green, width: 80, textAlign: 'right' },
-    emptyText: { color: C.textSecondary, fontSize: 14, textAlign: 'center', paddingVertical: 30, fontStyle: 'italic' },
-  });
 
   if (loading) {
     return (
@@ -153,12 +83,12 @@ const ResumoSemanalScreen = ({ preferences }) => {
             <Text style={styles.scoreSub}>Performance semanal geral</Text>
           </View>
 
-          <MetaBar label="💰 Ganhos semanais" value={summary.totalEarnings} meta={metaSemanal} unit="R$" isDark={isDark} C={C} />
+          <MetaBar label="💰 Ganhos semanais" value={summary.totalEarnings} meta={metaSemanal} unit="R$" isDark={colors} C={C} />
           {metaHora > 0 && (
-            <MetaBar label="⏱️ Ganho médio por hora" value={summary.avgEarningsPerHour} meta={metaHora} unit="R$" isDark={isDark} C={C} />
+            <MetaBar label="⏱️ Ganho médio por hora" value={summary.avgEarningsPerHour} meta={metaHora} unit="R$" isDark={colors} C={C} />
           )}
           {horasAlvo > 0 && (
-            <MetaBar label="🕐 Horas trabalhadas" value={summary.totalHours} meta={horasAlvo} unit="h" isDark={isDark} C={C} />
+            <MetaBar label="🕐 Horas trabalhadas" value={summary.totalHours} meta={horasAlvo} unit="h" isDark={colors} C={C} />
           )}
         </View>
       )}

@@ -4,31 +4,9 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { useTheme } from '../context/ThemeContext';
 import { getNotificationStatus, setNotificationStatus } from '../services/notificationService';
 import { APP_VERSION } from '../utils/constants';
+import { TERMS } from '../utils/configuration'
 
-const TERMS = `TERMOS E CONDIÇÕES DE USO — SUPA DRIVER
-
-Última atualização: março de 2026
-
-1. ACEITAÇÃO DOS TERMOS
-Ao utilizar o aplicativo Supa Driver, você concorda com estes Termos e Condições. Caso não concorde, não utilize o app.
-
-2. DESCRIÇÃO DO SERVIÇO
-O Supa Driver é uma ferramenta de apoio para motoristas de aplicativo, oferecendo controle de jornadas, análise de ganhos e recursos de produtividade. Não somos uma plataforma de transporte e não intermediamos corridas.
-
-3. PLANOS E PAGAMENTOS
-O plano Básico é gratuito. O plano Premium custa R$ 19,90/mês e não possui renovação automática. O acesso premium permanece ativo até o fim do período contratado.
-
-4. DADOS E PRIVACIDADE
-Coletamos apenas os dados necessários para o funcionamento do app (e-mail, nome e dados de jornada). Não vendemos seus dados a terceiros. Os dados são armazenados de forma segura em nossos servidores.
-
-5. RESPONSABILIDADES
-O Supa Driver não se responsabiliza por decisões tomadas com base nas informações do app. O motorista é o único responsável por suas ações no trânsito e nas plataformas de transporte.
-
-6. CANCELAMENTO
-Você pode encerrar sua conta a qualquer momento pelo menu de configurações. Os dados serão removidos em até 30 dias após a solicitação.
-
-7. CONTATO
-Dúvidas: suporte@supadriver.com.br`;
+const terms = TERMS
 
 const ConfiguracoesScreen = () => {
   const { isDark, toggleTheme, colors } = useTheme();
@@ -182,7 +160,7 @@ const ConfiguracoesScreen = () => {
             </View>
             <ScrollView showsVerticalScrollIndicator={false}>
               <Text style={{ fontSize: 13, color: C.textSecondary, lineHeight: 22 }}>
-                {TERMS}
+                {terms}
               </Text>
             </ScrollView>
           </View>

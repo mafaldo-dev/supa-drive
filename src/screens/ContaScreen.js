@@ -50,7 +50,7 @@ const ContaScreen = ({ user, userPlan, onLogout, onUpgradeClick }) => {
         setStats({ totalGanhos, totalCorridas, totalJornadas, totalHoras });
       }
     } catch (e) {
-      console.log('Erro ao carregar stats:', e);
+      console.warn('Erro ao carregar stats:', e);
     }
   };
 
@@ -97,17 +97,6 @@ const ContaScreen = ({ user, userPlan, onLogout, onUpgradeClick }) => {
     } finally {
       setIsSaving(false);
     }
-  };
-
-  const handleLogout = () => {
-    Alert.alert(
-      'Sair da conta',
-      'Tem certeza que deseja sair?',
-      [
-        { text: 'Cancelar', style: 'cancel' },
-        { text: 'Sair', style: 'destructive', onPress: onLogout },
-      ]
-    );
   };
 
   const daysLeft = () => {

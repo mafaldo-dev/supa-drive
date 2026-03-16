@@ -8,6 +8,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useTheme } from '../context/ThemeContext';
 import { BACKEND_URL } from '../utils/constants';
 import { STORAGE_KEYS } from '../utils/storage';
+import { formatDiscount, getDaysLeft } from '../utils/validators';
+
 
 const PromocoesScreen = () => {
   const { isDark } = useTheme();
@@ -49,7 +51,7 @@ const PromocoesScreen = () => {
       if (promosRes.ok) setPromos(await promosRes.json());
       if (couponsRes.ok) setCoupons(await couponsRes.json());
     } catch (e) {
-      console.log('Erro ao carregar promoções:', e);
+      console.warn('Erro ao carregar promoções:', e);
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -97,20 +99,9 @@ const PromocoesScreen = () => {
     setTimeout(() => setCopiedCode(null), 2000);
   };
 
-  const formatDiscount = (type, value) => {
-    if (type === 'percentage') return `${value}% OFF`;
-    return `R$ ${value.toFixed(2).replace('.', ',')} OFF`;
-  };
-
   const formatDate = (dateStr) => {
     if (!dateStr) return '';
     return new Date(dateStr).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' });
-  };
-
-  const getDaysLeft = (dateStr) => {
-    if (!dateStr) return null;
-    const diff = new Date(dateStr) - new Date();
-    return Math.max(0, Math.ceil(diff / (1000 * 60 * 60 * 24)));
   };
 
   if (loading) {

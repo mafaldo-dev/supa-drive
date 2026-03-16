@@ -1,39 +1,8 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, Linking, Animated } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, Linking } from 'react-native';
 import { useTheme } from '../context/ThemeContext';
 import { MaterialIcons } from '@expo/vector-icons';
-import { useGlobalStyles } from '../styles/useGlobalStyles';
-
-const FAQ_ITEMS = [
-  {
-    question: 'O que é o Supa Driver?',
-    answer: 'O Supa Driver é um aplicativo para motoristas de aplicativo que ajuda a controlar jornadas, acompanhar ganhos diários e semanais, e tomar decisões mais inteligentes no volante.',
-  },
-  {
-    question: 'Como funciona o cronômetro de jornada?',
-    answer: 'Ao iniciar uma jornada, o cronômetro começa a contar o tempo ao volante. Ao encerrar, você informa os ganhos e o número de corridas — tudo é salvo no histórico automaticamente.',
-  },
-  {
-    question: 'O que é o Resumo Semanal?',
-    answer: 'O Resumo Semanal compara seus ganhos reais da semana com as metas configuradas nas suas preferências, mostrando sua performance e média por hora.',
-  },
-  {
-    question: 'O que está incluso no plano Grátis?',
-    answer: 'No plano Grátis você tem acesso às preferências personalizadas, cronômetro de jornada com histórico, resumo semanal e notificações push.',
-  },
-  {
-    question: 'O que é o plano Premium?',
-    answer: 'O plano Premium por R$ 19,90/mês desbloqueia o semáforo inteligente de corridas, mensagens de voz ao fim da jornada, relatórios detalhados e suporte prioritário.',
-  },
-  {
-    question: 'Meus dados ficam salvos se eu trocar de celular?',
-    answer: 'Sim! Seus dados são sincronizados com nosso servidor. Basta fazer login com o mesmo Google na conta e tudo estará disponível.',
-  },
-  {
-    question: 'Como cancelo minha assinatura?',
-    answer: 'Você pode cancelar a qualquer momento pelo menu Assinatura dentro do app. Não há renovação automática — o acesso premium fica ativo até o fim do período pago.',
-  },
-];
+import { FAQ_ITEMS } from '../utils/constants';
 
 const FAQItem = ({ item, colors, isDark }) => {
   const [open, setOpen] = useState(false);
@@ -81,7 +50,6 @@ const FAQItem = ({ item, colors, isDark }) => {
 };
 
 const SuporteScreen = () => {
-  const globalStyles = useGlobalStyles();
   const { colors, isDark } = useTheme();
 
   const C = {
@@ -112,7 +80,7 @@ const SuporteScreen = () => {
         borderWidth: 1, borderColor: C.border, overflow: 'hidden',
       }}>
         {[
-          { icon: 'chat', label: 'Enviar Mensagem', onPress: () => {Linking.openURL('https://wa.me/5511999999999')} },
+          { icon: 'chat', label: 'Enviar Mensagem', onPress: () => { Linking.openURL('https://wa.me/5511999999999') } },
           { icon: 'email', label: 'Enviar e-mail', onPress: () => Linking.openURL('mailto:suporte-supadrive@gmail.com') },
         ].map((item, i, arr) => (
           <TouchableOpacity

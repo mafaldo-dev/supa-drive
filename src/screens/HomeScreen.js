@@ -1,11 +1,13 @@
 import React, { useRef, useState } from 'react';
 import {
   View, Text, ScrollView, TouchableOpacity,
-  Switch, StyleSheet, Dimensions, FlatList, Alert, RefreshControl,
+  Switch, Dimensions, FlatList, Alert, RefreshControl,
 } from 'react-native';
 import { FontAwesome5, MaterialIcons } from '@expo/vector-icons';
 import { useTheme } from '../context/ThemeContext';
 import { useSubscription } from '../hooks/useSubscription';
+
+import { useHomeStyles } from '../styles/homeStyles';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const CARD_WIDTH = SCREEN_WIDTH - 32;
@@ -14,181 +16,19 @@ const HomeScreen = ({
   user, userPlan, isFloatingActive, setIsFloatingActive,
   setShowFloatingButton, setShowPlanModal, preferences, onNavigateToPreferences, onRefresh
 }) => {
-  const { isDark } = useTheme();
+  
   const { isPremium } = useSubscription();
   const flatListRef = useRef(null);
   const [activeSlide, setActiveSlide] = useState(0);
   const [refreshing, setRefreshing] = useState(false);
+  const styles = useHomeStyles();
+  const { colors } = useTheme();
 
   const handleRefresh = async () => {
     setRefreshing(true);
     await onRefresh?.();
     setRefreshing(false);
   };
-
-  const C = {
-    bg: isDark ? '#0d0d14' : '#f0f0f7',
-    card: isDark ? '#1a1a2e' : '#ffffff',
-    card2: isDark ? '#16213e' : '#f8f8ff',
-    accent: '#FF6B6B',
-    accentSoft: isDark ? 'rgba(255,107,107,0.12)' : 'rgba(255,107,107,0.08)',
-    gold: '#FFD700',
-    green: '#4ade80',
-    textPrimary: isDark ? '#f0f0f0' : '#1a1a2e',
-    textSecondary: isDark ? '#8888aa' : '#888899',
-    border: isDark ? 'rgba(255,255,255,0.07)' : 'rgba(0,0,0,0.06)',
-    switchOn: '#FF6B6B',
-    switchOff: isDark ? '#333' : '#ddd',
-  };
-
-  const styles = StyleSheet.create({
-    container: { flex: 1, backgroundColor: C.bg },
-    content: { padding: 16, paddingBottom: 32 },
-
-    // Boas vindas
-    welcomeRow: {
-      flexDirection: 'row', justifyContent: 'space-between',
-      alignItems: 'center', marginBottom: 24,
-    },
-    welcomeLeft: { flex: 1 },
-    greetingText: { fontSize: 15, color: C.textSecondary, fontWeight: '500', marginBottom: 4 },
-    nameText: { fontSize: 28, fontWeight: '800', color: C.textPrimary, letterSpacing: -0.5 },
-    planBadge: {
-      flexDirection: 'row', alignItems: 'center', gap: 6,
-      backgroundColor: isPremium ? 'rgba(255,215,0,0.15)' : C.accentSoft,
-      paddingHorizontal: 14, paddingVertical: 8, borderRadius: 20,
-      borderWidth: 1, borderColor: isPremium ? 'rgba(255,215,0,0.3)' : 'rgba(255,107,107,0.2)',
-    },
-    planBadgeText: {
-      fontSize: 13, fontWeight: '700',
-      color: isPremium ? C.gold : C.accent,
-    },
-
-    // Status assinatura
-    subCard: {
-      backgroundColor: isPremium ? 'rgba(74,222,128,0.08)' : C.accentSoft,
-      borderRadius: 16, padding: 18, marginBottom: 24,
-      borderWidth: 1, borderColor: isPremium ? 'rgba(74,222,128,0.2)' : 'rgba(255,107,107,0.15)',
-      flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-    },
-    subCardLeft: { flex: 1 },
-    subCardTitle: { fontSize: 15, fontWeight: '700', color: C.textPrimary, marginBottom: 4 },
-    subCardSub: { fontSize: 13, color: C.textSecondary },
-    subCardBtn: {
-      backgroundColor: C.accent, borderRadius: 10,
-      paddingHorizontal: 16, paddingVertical: 10,
-    },
-    subCardBtnText: { color: '#fff', fontSize: 13, fontWeight: '700' },
-
-    // Carrossel
-    carouselLabel: {
-      fontSize: 13, fontWeight: '600', color: C.textSecondary,
-      letterSpacing: 1.2, textTransform: 'uppercase', marginBottom: 12,
-    },
-    slide: {
-      width: CARD_WIDTH, backgroundColor: C.card,
-      borderRadius: 20, padding: 24,
-      borderWidth: 1, borderColor: C.border,
-      shadowColor: '#000', shadowOffset: { width: 0, height: 4 },
-      shadowOpacity: isDark ? 0.3 : 0.08, shadowRadius: 12, elevation: 5,
-    },
-    slideHeader: {
-      flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 20,
-    },
-    slideIconBox: {
-      width: 42, height: 42, borderRadius: 12,
-      backgroundColor: C.accentSoft, alignItems: 'center', justifyContent: 'center',
-    },
-    slideTitle: { fontSize: 18, fontWeight: '700', color: C.textPrimary },
-
-    // Preferências grid
-    prefGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginBottom: 8 },
-    prefCell: {
-      width: '31%', backgroundColor: C.card2,
-      borderRadius: 12, padding: 12,
-      borderWidth: 1, borderColor: C.border,
-      alignItems: 'flex-start',
-    },
-    prefCellLabel: { fontSize: 11, color: C.textSecondary, marginBottom: 6 },
-    prefCellValue: { fontSize: 15, fontWeight: '800', color: C.accent },
-    prefSectionTitle: { fontSize: 12, fontWeight: '700', color: C.textSecondary, letterSpacing: 0.8, textTransform: 'uppercase', marginTop: 14, marginBottom: 8 },
-    tagsRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: 12 },
-    tag: {
-      backgroundColor: C.accentSoft, borderRadius: 8,
-      paddingHorizontal: 12, paddingVertical: 6,
-    },
-    tagText: { color: C.accent, fontSize: 12, fontWeight: '600' },
-    editPrefBtn: {
-      flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
-      gap: 6, marginTop: 16, backgroundColor: C.accentSoft,
-      borderRadius: 12, paddingVertical: 12,
-    },
-    editPrefBtnText: { color: C.accent, fontWeight: '700', fontSize: 14 },
-
-    // Funcionalidades
-    featureRow: {
-      flexDirection: 'row', justifyContent: 'space-between',
-      alignItems: 'center', paddingVertical: 16,
-      borderBottomWidth: 1, borderBottomColor: C.border,
-    },
-    featureLeft: { flexDirection: 'row', alignItems: 'center', gap: 14, flex: 1 },
-    featureIconBox: {
-      width: 42, height: 42, borderRadius: 12,
-      backgroundColor: C.accentSoft, alignItems: 'center', justifyContent: 'center',
-    },
-    featureTextWrap: { flex: 1 },
-    featureName: { fontSize: 15, fontWeight: '600', color: C.textPrimary },
-    featureDesc: { fontSize: 12, color: C.textSecondary, marginTop: 2 },
-
-    // Upgrade
-    upgradeGradient: { alignItems: 'center' },
-    upgradeEmoji: { fontSize: 44, marginBottom: 12 },
-    upgradeTitle: { fontSize: 20, fontWeight: '800', color: C.textPrimary, textAlign: 'center', marginBottom: 8 },
-    upgradeSub: { fontSize: 14, color: C.textSecondary, textAlign: 'center', marginBottom: 24, lineHeight: 20 },
-    upgradeFeatures: { width: '100%', gap: 10, marginBottom: 24 },
-    upgradeFeatureRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-    upgradeFeatureText: { fontSize: 14, color: C.textPrimary },
-    upgradeBtn: {
-      backgroundColor: C.accent, borderRadius: 14,
-      paddingVertical: 16, paddingHorizontal: 32, width: '100%', alignItems: 'center',
-    },
-    upgradeBtnText: { color: '#fff', fontWeight: '800', fontSize: 16 },
-    upgradePrice: { fontSize: 12, color: C.textSecondary, marginTop: 10 },
-
-    // Dots
-    dotsRow: { flexDirection: 'row', justifyContent: 'center', gap: 6, marginTop: 16 },
-    dot: { width: 7, height: 7, borderRadius: 4, backgroundColor: C.border },
-    dotActive: { width: 22, height: 7, borderRadius: 4, backgroundColor: C.accent },
-
-    // Resumo financeiro
-    summaryCard: {
-      backgroundColor: C.card, borderRadius: 20, padding: 22, marginTop: 24,
-      borderWidth: 1, borderColor: C.border,
-      shadowColor: '#000', shadowOffset: { width: 0, height: 4 },
-      shadowOpacity: isDark ? 0.3 : 0.08, shadowRadius: 12, elevation: 5,
-    },
-    summaryHeader: { flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 18 },
-    summaryIconBox: {
-      width: 42, height: 42, borderRadius: 12,
-      backgroundColor: 'rgba(74,222,128,0.12)', alignItems: 'center', justifyContent: 'center',
-    },
-    summaryTitle: { fontSize: 17, fontWeight: '700', color: C.textPrimary },
-    summaryRow: {
-      flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
-      paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: C.border,
-    },
-    summaryRowLabel: { fontSize: 14, color: C.textSecondary },
-    summaryRowValue: { fontSize: 14, fontWeight: '600', color: C.textPrimary },
-    summaryRowNeg: { fontSize: 14, fontWeight: '600', color: '#f87171' },
-    summaryTotal: {
-      flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
-      backgroundColor: 'rgba(74,222,128,0.08)', borderRadius: 14, padding: 16,
-      borderWidth: 1, borderColor: 'rgba(74,222,128,0.2)', marginTop: 8,
-    },
-    summaryTotalLabel: { fontSize: 15, fontWeight: '700', color: C.textPrimary },
-    summaryTotalValue: { fontSize: 22, fontWeight: '800', color: '#4ade80' },
-    summaryNote: { fontSize: 12, color: C.textSecondary, textAlign: 'center', marginTop: 14, fontStyle: 'italic' },
-  });
 
   const getApps = () => {
     if (!preferences?.apps) return [];
@@ -230,7 +70,7 @@ const HomeScreen = ({
         <View style={styles.slide}>
           <View style={styles.slideHeader}>
             <View style={styles.slideIconBox}>
-              <MaterialIcons name="tune" size={20} color={C.accent} />
+              <MaterialIcons name="tune" size={20} color={colors.accent} />
             </View>
             <Text style={styles.slideTitle}>Preferências</Text>
           </View>
@@ -297,7 +137,7 @@ const HomeScreen = ({
                       </View>
                     ))}
                     {getCategories().map(cat => (
-                      <View key={cat} style={[styles.tag, { backgroundColor: isDark ? 'rgba(100,100,200,0.15)' : 'rgba(100,100,200,0.08)' }]}>
+                      <View key={cat} style={[styles.tag, { backgroundColor: colors ? 'rgba(100,100,200,0.15)' : 'rgba(100,100,200,0.08)' }]}>
                         <Text style={[styles.tagText, { color: '#8888ff' }]}>{cat}</Text>
                       </View>
                     ))}
@@ -306,13 +146,13 @@ const HomeScreen = ({
               )}
             </>
           ) : (
-            <Text style={{ color: C.textSecondary, fontSize: 14, textAlign: 'center', paddingVertical: 24 }}>
+            <Text style={{ color: colors.textSecondary, fontSize: 14, textAlign: 'center', paddingVertical: 24 }}>
               Nenhuma preferência configurada ainda.
             </Text>
           )}
 
           <TouchableOpacity style={styles.editPrefBtn} onPress={onNavigateToPreferences}>
-            <MaterialIcons name="edit" size={16} color={C.accent} />
+            <MaterialIcons name="edit" size={16} color={colors.accent} />
             <Text style={styles.editPrefBtnText}>Editar Preferências</Text>
           </TouchableOpacity>
         </View>
@@ -324,7 +164,7 @@ const HomeScreen = ({
         <View style={styles.slide}>
           <View style={styles.slideHeader}>
             <View style={styles.slideIconBox}>
-              <MaterialIcons name="flash-on" size={20} color={C.accent} />
+              <MaterialIcons name="flash-on" size={20} color={colors.accent} />
             </View>
             <Text style={styles.slideTitle}>Funcionalidades</Text>
           </View>
@@ -332,7 +172,7 @@ const HomeScreen = ({
           <View style={styles.featureRow}>
             <View style={styles.featureLeft}>
               <View style={styles.featureIconBox}>
-                <FontAwesome5 name="traffic-light" size={16} color={C.accent} />
+                <FontAwesome5 name="traffic-light" size={16} color={colors.accent} />
               </View>
               <View style={styles.featureTextWrap}>
                 <Text style={styles.featureName}>Semáforo Automático</Text>
@@ -356,7 +196,7 @@ const HomeScreen = ({
                   setShowFloatingButton(value);
                 }
               }}
-              trackColor={{ false: C.switchOff, true: C.switchOn }}
+              trackColor={{ false: colors.switchOff, true: colors.switchOn }}
               thumbColor="#fff"
             />
           </View>
@@ -364,7 +204,7 @@ const HomeScreen = ({
           <View style={[styles.featureRow, { borderBottomWidth: 0 }]}>
             <View style={styles.featureLeft}>
               <View style={styles.featureIconBox}>
-                <MaterialIcons name="warning" size={18} color={C.accent} />
+                <MaterialIcons name="warning" size={18} color={colors.accent} />
               </View>
               <View style={styles.featureTextWrap}>
                 <Text style={styles.featureName}>Alerta de Área de Risco</Text>
@@ -374,7 +214,7 @@ const HomeScreen = ({
             <Switch
               value={true}
               onValueChange={() => {}}
-              trackColor={{ false: C.switchOff, true: C.switchOn }}
+              trackColor={{ false: colors.switchOff, true: colors.switchOn }}
               thumbColor="#fff"
             />
           </View>
@@ -422,8 +262,8 @@ const HomeScreen = ({
         <RefreshControl
           refreshing={refreshing}
           onRefresh={handleRefresh}
-          tintColor={C.accent}
-          colors={[C.accent]}
+          tintColor={colors.accent}
+          colors={[colors.accent]}
         />
       }
     >

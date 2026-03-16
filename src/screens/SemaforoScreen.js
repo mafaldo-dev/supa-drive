@@ -13,18 +13,15 @@ import { nativeService } from '../services/nativeService';
 const SemaforoScreen = () => {
   const { isDark } = useTheme();
 
-  // Switches
   const [semaforoAtivo, setSemaforoAtivo] = useState(false);
   const [notifAtiva, setNotifAtiva] = useState(false);
   const [backgroundAtivo, setBackgroundAtivo] = useState(false);
 
-  // Estado do semáforo
-  const [sinalAtual, setSinalAtual] = useState(null); // 'green' | 'yellow' | 'red' | null
+  const [sinalAtual, setSinalAtual] = useState(null); 
   const [ultimaCorrida, setUltimaCorrida] = useState(null);
   const [preferencias, setPreferencias] = useState(null);
   const [accessibilityEnabled, setAccessibilityEnabled] = useState(false);
 
-  // Animação do semáforo
   const pulseAnim = useRef(new Animated.Value(1)).current;
   const rideSubscription = useRef(null);
 

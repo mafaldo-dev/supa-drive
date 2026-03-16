@@ -1,9 +1,6 @@
-import { useState, useEffect, useContext } from 'react';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useState, useEffect } from 'react';
 import { subscriptionService, planService } from '../services/apiService';
-import { STORAGE_KEYS } from '../utils/storage';
 
-// Hook para gerenciar assinatura
 export const useSubscription = () => {
   const [subscription, setSubscription] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -65,7 +62,6 @@ export const usePlans = () => {
   };
 };
 
-// Hook para gerenciar promoções
 export const usePromotions = () => {
   const [promotions, setPromotions] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -105,7 +101,6 @@ export const usePromotions = () => {
   };
 };
 
-// Hook para gerenciar configurações do motorista
 export const useDriverSettings = () => {
   const [settings, setSettings] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -127,10 +122,9 @@ export const useDriverSettings = () => {
     try {
       let result;
       if (settings) {
-        // Atualizar configurações existentes
-        result = await subscriptionService.updateDriverSettings(newSettings);
+         result = await subscriptionService.updateDriverSettings(newSettings);
       } else {
-        // Criar novas configurações
+        
         result = await subscriptionService.createDriverSettings(newSettings);
       }
 
