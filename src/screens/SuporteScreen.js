@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, ScrollView, Linking } from 'react-native';
 import { useTheme } from '../context/ThemeContext';
 import { MaterialIcons } from '@expo/vector-icons';
-import { FAQ_ITEMS } from '../utils/constants';
+import { FAQ_ITEMS } from '../utils/configuration';
 
 const FAQItem = ({ item, colors, isDark }) => {
   const [open, setOpen] = useState(false);

@@ -21,7 +21,7 @@ const HomeScreen = ({
   const flatListRef = useRef(null);
   const [activeSlide, setActiveSlide] = useState(0);
   const [refreshing, setRefreshing] = useState(false);
-  const styles = useHomeStyles();
+  const styles = useHomeStyles(isPremium);
   const { colors } = useTheme();
 
   const handleRefresh = async () => {

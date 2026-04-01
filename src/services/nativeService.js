@@ -49,7 +49,7 @@ export const nativeService = {
   stopSpeech: async () => {
     if (!SupaDriverModule) return;
     try { await SupaDriverModule.stopSpeech(); }
-    catch (e) {}
+    catch (e) { }
   },
 
   sendJourneyEndPush: async ({ durationSeconds, earnings, ridesCount }) => {
@@ -67,13 +67,43 @@ export const nativeService = {
   cancelAllNotifications: async () => {
     if (!SupaDriverModule) return;
     try { await SupaDriverModule.cancelAllNotifications(); }
-    catch (e) {}
+    catch (e) { }
   },
 
   onRideDetected: (callback) => {
-    if (!emitter) return { remove: () => {} };
+    if (!emitter) return { remove: () => { } };
     return emitter.addListener('onRideDetected', callback);
   },
-};
+
+  checkOverlayPermission: async () => {
+    if (!SupaDriverModule) return false;
+    try { return await SupaDriverModule.checkOverlayPermission(); }
+    catch { return false; }
+  },
+
+  requestOverlayPermission: async () => {
+    if (!SupaDriverModule) return;
+    try { await SupaDriverModule.requestOverlayPermission(); }
+    catch { }
+  },
+
+  startFloating: async () => {
+    if (!SupaDriverModule) return;
+    try { await SupaDriverModule.startFloatingWidget(); }
+    catch (e) { console.log(e); }
+  },
+
+  stopFloating: async () => {
+    if (!SupaDriverModule) return;
+    try { await SupaDriverModule.stopFloatingWidget(); }
+    catch { }
+  },
+
+  startFloatingAppIcon: async () => {
+    if (!SupaDriverModule) return;
+    try { await SupaDriverModule.startFloatingAppIcon(); }
+    catch (e) { console.log(e); }
+  },
+}
 
 export default nativeService;

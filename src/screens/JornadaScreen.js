@@ -24,6 +24,7 @@ const formatDate = (dateStr) => {
 
 const CircularTimer = ({ elapsed, isRunning, isPaused, colors, isDark }) => {
   const pulseAnim = useRef(new Animated.Value(1)).current;
+  const fourHourAlertRef = useRef(null);
 
   useEffect(() => {
     if (isRunning && !isPaused) {
@@ -97,7 +98,7 @@ const JornadaScreen = ({ preferences, userPlan }) => {
   const [voiceEnabled, setVoiceEnabled] = useState(false);
   const [floatingEnabled, setFloatingEnabled] = useState(false);
   const styles = useJornadaStyles()
-  const { colors } = useTheme();
+  const { colors, isDark } = useTheme();
   
   const C = {
     bg: colors ? '#0d0d14' : '#f0f0f7',
@@ -192,8 +193,11 @@ const JornadaScreen = ({ preferences, userPlan }) => {
     setElapsed(0);
     setIsRunning(true);
     setIsPaused(false);
-    // Agenda alerta automático de pausa após 4h
-    await nativeService.sendFourHourAlert(); // agenda internamente no nativo
+    // Agenda alerta de 4h via setTimeout (4 horas = 14400000ms)
+    if (fourHourAlertRef.current) clearTimeout(fourHourAlertRef.current);
+    fourHourAlertRef.current = setTimeout(async () => {
+      await nativeService.sendFourHourAlert();
+    }, 4 * 60 * 60 * 1000);
   };
 
   const handleStop = () => {
@@ -226,17 +230,28 @@ const JornadaScreen = ({ preferences, userPlan }) => {
       ridesCount: finalRides,
     });
 
-    // Cancela o alerta de 4h
-    await nativeService.cancelAllNotifications();
-
-    // Dispara notificação ANTES de resetar os estados
-    const sessionData = { durationSeconds: finalDuration, earnings: finalEarnings, ridesCount: finalRides };
+    // Dispara notificação ANTES de cancelar (para evitar race condition)
     if (pushEnabled) {
-      await nativeService.sendJourneyEndPush(sessionData);
+      console.log('📤 Enviando push com:', { durationSeconds: finalDuration, earnings: finalEarnings, ridesCount: finalRides });
+      await nativeService.sendJourneyEndPush({
+        durationSeconds: finalDuration,
+        earnings: finalEarnings,
+        ridesCount: finalRides
+      });
     } else if (voiceEnabled) {
-      await nativeService.speakJourneyEnd(sessionData);
+      console.log('🔊 Enviando voz com:', { durationSeconds: finalDuration, earnings: finalEarnings, ridesCount: finalRides });
+      await nativeService.speakJourneyEnd({
+        durationSeconds: finalDuration,
+        earnings: finalEarnings,
+        ridesCount: finalRides
+      });
+    } else {
+      console.log('ℹ️ Sem notificação habilitada (push:', pushEnabled, 'voice:', voiceEnabled, ')');
     }
 
+    // Cancela apenas o timeout do alerta de 4h (a notificação de encerramento já foi enviada)
+    if (fourHourAlertRef.current) clearTimeout(fourHourAlertRef.current);
+    
     // Reseta estados depois de tudo
     setIsRunning(false);
     setIsPaused(false);
@@ -290,7 +305,7 @@ const JornadaScreen = ({ preferences, userPlan }) => {
             elapsed={elapsed}
             isRunning={isRunning}
             isPaused={isPaused}
-            C={C}
+            colors={C}
             isDark={isDark}
           />
           <View style={styles.timerBtnRow}>

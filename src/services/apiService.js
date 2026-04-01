@@ -73,6 +73,10 @@ getUserSubscription: async () => {
       const response = await fetch(`${BACKEND_URL}/api/subscriptions/status/${driverId}`, {
         headers: await getAuthHeaders()
       });
+      if (!response.ok) {
+        console.error('Erro na resposta do servidor:', response.status);
+        return { active: false, status: 'error' };
+      }
       return await response.json();
     } catch (error) {
       console.error('Erro ao verificar status:', error);
@@ -87,6 +91,10 @@ getUserSubscription: async () => {
       const response = await fetch(`${BACKEND_URL}/api/driver/profit/${driverId}`, {
         headers: await getAuthHeaders()
       });
+      if (!response.ok) {
+        console.error('Erro na resposta do servidor:', response.status);
+        return null;
+      }
       const text = await response.text();
       return JSON.parse(text);
     } catch (error) {
@@ -103,6 +111,10 @@ getUserSubscription: async () => {
         headers: await getAuthHeaders(),
         body: JSON.stringify({ ...settingsData, driver_id: parseInt(driverId) })
       });
+      if (!response.ok) {
+        console.error('Erro na resposta do servidor:', response.status);
+        return null;
+      }
       return await response.json();
     } catch (error) {
       console.error('Erro ao atualizar configurações:', error);
@@ -118,6 +130,10 @@ getUserSubscription: async () => {
         headers: await getAuthHeaders(),
         body: JSON.stringify({ ...settingsData, driver_id: parseInt(driverId) })
       });
+      if (!response.ok) {
+        console.error('Erro na resposta do servidor:', response.status);
+        return null;
+      }
       return await response.json();
     } catch (error) {
       console.error('Erro ao criar configurações:', error);

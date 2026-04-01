@@ -1,9 +1,11 @@
-import { StyleSheet } from 'react-native';
+import { StyleSheet, Dimensions } from 'react-native';
 import { useTheme } from '../context/ThemeContext';
 import { useMemo } from 'react';
 
-export const useHomeStyles = () => {
-    const { colors } = useTheme()
+const CARD_WIDTH = Dimensions.get('window').width - 32;
+
+export const useHomeStyles = (isPremium) => {
+    const { colors, isDark } = useTheme()
     return useMemo(
         () =>
             StyleSheet.create({
@@ -154,6 +156,6 @@ export const useHomeStyles = () => {
                 summaryTotalValue: { fontSize: 22, fontWeight: '800', color: '#4ade80' },
                 summaryNote: { fontSize: 12, color: colors.textSecondary, textAlign: 'center', marginTop: 14, fontStyle: 'italic' },
             }),
-        [colors]
+        [colors, isPremium]
     )
 }

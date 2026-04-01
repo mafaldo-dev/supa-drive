@@ -1,9 +1,9 @@
 {
   "expo": {
     "name": "Supa Driver",
-    "slug": "supa-drive",
+    "slug": "supa Driver",
     "version": "1.0.0",
-    "scheme": "supa-drive",
+    "scheme": "Supa Driver",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "dark",

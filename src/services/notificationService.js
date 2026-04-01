@@ -1,5 +1,6 @@
 import * as Notifications from 'expo-notifications';
 import * as Speech from 'expo-speech';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const NOTIFICATIONS_KEY = '@motoristapro:notifications_enabled';
 
@@ -32,13 +33,11 @@ export const setNotificationStatus = async (enabled) => {
     if (enabled) {
       const granted = await requestNotificationPermissions();
       if (granted) {
-        const AsyncStorage = (await import('@react-native-async-storage/async-storage')).default;
         await AsyncStorage.setItem(NOTIFICATIONS_KEY, JSON.stringify(true));
         return true;
       }
       return false;
     } else {
-      const AsyncStorage = (await import('@react-native-async-storage/async-storage')).default;
       await AsyncStorage.setItem(NOTIFICATIONS_KEY, JSON.stringify(false));
       return true;
     }

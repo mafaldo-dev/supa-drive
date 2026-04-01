@@ -11,6 +11,12 @@ export const handleGoogleToken = async (token, userData, setLoading, onLogin) =>
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ token }),
     });
+    if (!res.ok) {
+      console.error('Erro na resposta do servidor:', res.status);
+      Alert.alert('Erro', 'Falha ao autenticar. Tente novamente.', 'error');
+      setLoading(false);
+      return;
+    }
     const data = await res.json();
 
     if (data.token) {
