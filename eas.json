@@ -8,6 +8,7 @@
       "developmentClient": true,
       "distribution": "internal"
     },
+
     "preview": {
       "android": {
         "buildType": "apk"
@@ -18,9 +19,17 @@
         "APP_ENV": "staging"
       }
     },
+
     "production": {
       "android": {
         "buildType": "app-bundle"
+      },
+      "autoIncrement": true
+    },
+
+    "production-apk": {
+      "android": {
+        "buildType": "apk"
       },
       "autoIncrement": true
     }

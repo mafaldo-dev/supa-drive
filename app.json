@@ -1,9 +1,9 @@
 {
   "expo": {
     "name": "Supa Driver",
-    "slug": "supa Driver",
+    "slug": "supa-drive",
     "version": "1.0.0",
-    "scheme": "Supa Driver",
+    "scheme": "Supa-driver",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "dark",
@@ -13,7 +13,8 @@
       "backgroundColor": "#0d0d14"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.markondes.supadrive"
     },
     "android": {
       "adaptiveIcon": {
