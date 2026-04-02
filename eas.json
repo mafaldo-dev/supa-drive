@@ -6,9 +6,9 @@
   "build": {
     "development": {
       "developmentClient": true,
-      "distribution": "internal"
+      "distribution": "internal",
+      "channel": "development"
     },
-
     "preview": {
       "android": {
         "buildType": "apk"
@@ -19,19 +19,19 @@
         "APP_ENV": "staging"
       }
     },
-
     "production": {
       "android": {
         "buildType": "app-bundle"
       },
-      "autoIncrement": true
+      "autoIncrement": true,
+      "channel": "production"
     },
-
     "production-apk": {
       "android": {
         "buildType": "apk"
       },
-      "autoIncrement": true
+      "autoIncrement": true,
+      "channel": "production-apk"
     }
   },
   "submit": {

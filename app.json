@@ -2,8 +2,7 @@
   "expo": {
     "name": "Supa Driver",
     "slug": "supa-drive",
-    "version": "1.0.0",
-    "scheme": "Supa-driver",
+    "version": "1.0.1",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "dark",
@@ -26,7 +25,8 @@
       "permissions": [
         "NOTIFICATIONS",
         "SYSTEM_ALERT_WINDOW"
-      ]
+      ],
+      "scheme": "supadrive"
     },
     "web": {
       "favicon": "./assets/icon.png"
@@ -54,9 +54,7 @@
       "WEB_CLIENT_ID": "9376164532-bc5fuh64gsfs6itm3rnhmt81sd9c5dq3.apps.googleusercontent.com"
     },
     "owner": "markondes",
-    "runtimeVersion": {
-      "policy": "appVersion"
-    },
+    "runtimeVersion": "1.0.1",
     "updates": {
       "url": "https://u.expo.dev/dffbf326-a416-413d-9a3b-5f06dbdf9d28"
     }

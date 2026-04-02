@@ -1,4 +1,5 @@
 import React, { useRef, useState } from 'react';
+
 import {
   View, Text, ScrollView, TouchableOpacity,
   Switch, Dimensions, FlatList, Alert, RefreshControl,
@@ -11,6 +12,7 @@ import { useHomeStyles } from '../styles/homeStyles';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const CARD_WIDTH = SCREEN_WIDTH - 32;
+
 
 const HomeScreen = ({
   user, userPlan, isFloatingActive, setIsFloatingActive,

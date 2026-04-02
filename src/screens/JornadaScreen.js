@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import {
   View, Text, ScrollView, TouchableOpacity, TextInput,
-   Alert, Modal, ActivityIndicator, AppState,
+  Alert, Modal, ActivityIndicator, AppState,
   Switch, Animated,
 } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
@@ -24,7 +24,6 @@ const formatDate = (dateStr) => {
 
 const CircularTimer = ({ elapsed, isRunning, isPaused, colors, isDark }) => {
   const pulseAnim = useRef(new Animated.Value(1)).current;
-  const fourHourAlertRef = useRef(null);
 
   useEffect(() => {
     if (isRunning && !isPaused) {
@@ -99,7 +98,8 @@ const JornadaScreen = ({ preferences, userPlan }) => {
   const [floatingEnabled, setFloatingEnabled] = useState(false);
   const styles = useJornadaStyles()
   const { colors, isDark } = useTheme();
-  
+  const fourHourAlertRef = useRef(null);
+
   const C = {
     bg: colors ? '#0d0d14' : '#f0f0f7',
     card: colors ? '#1a1a2e' : '#ffffff',
@@ -133,7 +133,7 @@ const JornadaScreen = ({ preferences, userPlan }) => {
         }
         const floating = await AsyncStorage.getItem(FLOATING_KEY);
         setFloatingEnabled(floating === 'true');
-      } catch {}
+      } catch { }
 
       const startTime = await timerService.getStartTime();
       if (startTime) {
@@ -189,11 +189,11 @@ const JornadaScreen = ({ preferences, userPlan }) => {
   };
 
   const handleStart = async () => {
-    await timerService.startTimer();
+    await timerService.startTimer()
     setElapsed(0);
     setIsRunning(true);
     setIsPaused(false);
-    // Agenda alerta de 4h via setTimeout (4 horas = 14400000ms)
+
     if (fourHourAlertRef.current) clearTimeout(fourHourAlertRef.current);
     fourHourAlertRef.current = setTimeout(async () => {
       await nativeService.sendFourHourAlert();
@@ -212,63 +212,74 @@ const JornadaScreen = ({ preferences, userPlan }) => {
   };
 
   const handleSaveSession = async () => {
+
     if (!earnings) {
-      Alert.alert('Atenção', 'Informe os ganhos do dia.');
+      console.info('Atenção', 'Informe os ganhos do dia.');
       return;
     }
+
     setSaving(true);
 
-    // Salva os valores ANTES de resetar os estados
-    const finalEarnings = parseFloat(String(earnings).replace(',', '.')) || 0;
-    const finalRides = parseInt(ridesCount) || 0;
-    const finalDuration = frozenElapsed;
+    try {
+      const finalEarnings = parseFloat(String(earnings).replace(',', '.')) || 0;
+      const finalRides = parseInt(ridesCount) || 0;
+      const finalDuration = frozenElapsed;
 
-    await timerService.stopTimer();
-    const result = await sessionService.saveSession({
-      durationSeconds: finalDuration,
-      earnings: finalEarnings,
-      ridesCount: finalRides,
-    });
-
-    // Dispara notificação ANTES de cancelar (para evitar race condition)
-    if (pushEnabled) {
-      console.log('📤 Enviando push com:', { durationSeconds: finalDuration, earnings: finalEarnings, ridesCount: finalRides });
-      await nativeService.sendJourneyEndPush({
+      await timerService.stopTimer();
+      const result = await sessionService.saveSession({
         durationSeconds: finalDuration,
         earnings: finalEarnings,
-        ridesCount: finalRides
+        ridesCount: finalRides,
       });
-    } else if (voiceEnabled) {
-      console.log('🔊 Enviando voz com:', { durationSeconds: finalDuration, earnings: finalEarnings, ridesCount: finalRides });
-      await nativeService.speakJourneyEnd({
-        durationSeconds: finalDuration,
-        earnings: finalEarnings,
-        ridesCount: finalRides
-      });
-    } else {
-      console.log('ℹ️ Sem notificação habilitada (push:', pushEnabled, 'voice:', voiceEnabled, ')');
+      console.log(result)
+
+      if (pushEnabled) {
+        try {
+          await nativeService.sendJourneyEndPush({
+            durationSeconds: finalDuration,
+            earnings: finalEarnings,
+            ridesCount: finalRides
+          });
+        } catch (err) {
+          console.error('💥 [PUSH] Erro ao enviar push:', err);
+        }
+      } else if (voiceEnabled) {
+        try {
+          await nativeService.speakJourneyEnd({
+            durationSeconds: finalDuration,
+            earnings: finalEarnings,
+            ridesCount: finalRides
+          });
+        } catch (err) {
+          console.error('💥 [PUSH] Erro ao enviar voz:', err);
+        }
+      } else {
+        console.info('🔵 [PUSH] Nenhuma notificação habilitada');
+      }
+
+      if (fourHourAlertRef.current) {
+        clearTimeout(fourHourAlertRef.current);
+        fourHourAlertRef.current = null;
+      }
+
+      // RESET de estado
+      setIsRunning(false);
+      setIsPaused(false);
+      setElapsed(0);
+      setFrozenElapsed(0);
+      setShowEndModal(false);
+      setEarnings('');
+      setRidesCount('');
+
+      const data = await sessionService.getSessions(30);
+      setSessions(data);
+
+
+    } catch (e) {
+      console.warn('Erro', 'Falha ao salvar a jornada: ' + (e.message || 'erro desconhecido'));
+    } finally {
+      setSaving(false);
     }
-
-    // Cancela apenas o timeout do alerta de 4h (a notificação de encerramento já foi enviada)
-    if (fourHourAlertRef.current) clearTimeout(fourHourAlertRef.current);
-    
-    // Reseta estados depois de tudo
-    setIsRunning(false);
-    setIsPaused(false);
-    setElapsed(0);
-    setFrozenElapsed(0);
-    setShowEndModal(false);
-    setEarnings('');
-    setRidesCount('');
-    setSaving(false);
-
-    const data = await sessionService.getSessions(30);
-    setSessions(data);
-
-    Alert.alert(
-      'Jornada encerrada! 🎉',
-      result.success ? 'Dados salvos com sucesso!' : 'Salvos localmente (sem conexão).'
-    );
   };
 
   const handleDiscardSession = () => {

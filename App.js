@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import * as Updates from 'expo-updates';
+
 import {
   SafeAreaView,
   View,
@@ -60,6 +62,27 @@ export default function App() {
   const [timerElapsed, setTimerElapsed] = useState(0);
   const [timerRunning, setTimerRunning] = useState(false);
   const [floatingTimerVisible, setFloatingTimerVisible] = useState(false);
+
+  useEffect(() => {
+  const checkForUpdates = async () => {
+    try {
+      const update = await Updates.checkForUpdateAsync();
+      if (update.isAvailable) {
+        console.log('Update disponível, baixando...');
+        await Updates.fetchUpdateAsync();
+        console.log('Update baixado, reiniciando app...');
+        await Updates.reloadAsync();
+      } else {
+        console.log('Nenhum update disponível');
+      }
+    } catch (error) {
+      console.log('Erro ao verificar update:', error);
+    }
+  };
+
+  // Verifica updates quando o app iniciar
+  checkForUpdates();
+}, []);
 
   useEffect(() => {
     checkSavedLogin(setIsLoggedIn, setUser, setUserPlan, setCheckingAuth);
