@@ -1,10 +1,14 @@
 package com.markondes.supadrive
 
+import android.accessibilityservice.AccessibilityServiceInfo
 import android.app.NotificationManager
 import android.content.Context
+import android.content.Intent
 import android.os.Build
 import android.os.Handler
 import android.os.Looper
+import android.provider.Settings
+import android.view.accessibility.AccessibilityManager
 import androidx.core.app.NotificationCompat
 import com.facebook.react.bridge.*
 import com.facebook.react.modules.core.DeviceEventManagerModule
@@ -132,6 +136,36 @@ class SupaDriverModule(reactContext: ReactApplicationContext) :
         notificationManager.cancelAll()
     }
 
+    @ReactMethod
+    fun startForegroundService() {
+        SupaDriverForegroundService.start(context)
+    }
+
+    @ReactMethod
+    fun stopForegroundService() {
+        SupaDriverForegroundService.stop(context)
+    }
+
+    @ReactMethod
+    fun isAccessibilityEnabled(promise: Promise) {
+        try {
+            val am = context.getSystemService(Context.ACCESSIBILITY_SERVICE) as AccessibilityManager
+            val enabled = am.isEnabled
+            val services = am.getEnabledAccessibilityServiceList(AccessibilityServiceInfo.FEEDBACK_ALL_MASK)
+            val isOurServiceEnabled = services.any { it.resolveInfo.serviceInfo.packageName == context.packageName }
+            promise.resolve(isOurServiceEnabled && enabled)
+        } catch (e: Exception) {
+            promise.reject("ACCESSIBILITY_ERROR", e.message, e)
+        }
+    }
+
+    @ReactMethod
+    fun openAccessibilitySettings() {
+        val intent = Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        context.startActivity(intent)
+    }
+
     private fun sendEvent(eventName: String, params: Any?) {
         try {
             reactApplicationContext
@@ -141,62 +175,4 @@ class SupaDriverModule(reactContext: ReactApplicationContext) :
             // Ignore
         }
     }
-}
-
-@ReactMethod
-fun sendLocalNotification(title: String, body: String, promise: Promise) {
-    try {
-        val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-        val channelId = "supa_driver_channel"
-        val notificationId = System.currentTimeMillis().toInt()
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val channel = android.app.NotificationChannel(
-                channelId,
-                "Supa Driver",
-                NotificationManager.IMPORTANCE_HIGH
-            )
-            notificationManager.createNotificationChannel(channel)
-        }
-
-        val intent = context.packageManager.getLaunchIntentForPackage(context.packageName)
-        val pendingIntent = android.app.PendingIntent.getActivity(
-            context, 0, intent,
-            android.app.PendingIntent.FLAG_UPDATE_CURRENT or android.app.PendingIntent.FLAG_IMMUTABLE
-        )
-
-        val notification = NotificationCompat.Builder(context, channelId)
-            .setContentTitle(title)
-            .setContentText(body)
-            .setSmallIcon(android.R.drawable.ic_dialog_info)
-            .setContentIntent(pendingIntent)
-            .setAutoCancel(true)
-            .build()
-
-        notificationManager.notify(notificationId, notification)
-        promise.resolve(true)
-    } catch (e: Exception) {
-        promise.reject("NOTIFICATION_ERROR", e.message, e)
-    }
-}
-
-@ReactMethod
-fun isAccessibilityEnabled(promise: Promise) {
-    try {
-        val enabled = android.provider.Settings.Secure.getInt(
-            context.contentResolver,
-            android.provider.Settings.Secure.ACCESSIBILITY_ENABLED,
-            0
-        ) == 1
-        promise.resolve(enabled)
-    } catch (e: Exception) {
-        promise.reject("ACCESSIBILITY_ERROR", e.message, e)
-    }
-}
-
-@ReactMethod
-fun openAccessibilitySettings() {
-    val intent = Intent(android.provider.Settings.ACTION_ACCESSIBILITY_SETTINGS)
-    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-    context.startActivity(intent)
 }

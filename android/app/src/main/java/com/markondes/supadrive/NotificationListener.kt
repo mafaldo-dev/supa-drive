@@ -15,7 +15,6 @@ class NotificationListener : NotificationListenerService() {
         var reactContext: ReactApplicationContext? = null
         private const val TAG = "NotificationListener"
         
-        // Apps que queremos monitorar
         val TARGET_APPS = mapOf(
             "com.ubercab" to "Uber",
             "com.ubercab.driver" to "Uber Driver",
@@ -28,7 +27,6 @@ class NotificationListener : NotificationListenerService() {
             "com.indriver.driver" to "inDriver Driver"
         )
         
-        // Padrões para extrair valores
         val PRICE_PATTERN = Pattern.compile("R\\$\\s*(\\d+[.,]\\d{2})")
         val DISTANCE_PATTERN = Pattern.compile("(\\d+[.,]\\d+)\\s*km", Pattern.CASE_INSENSITIVE)
         val DESTINATION_PATTERN = Pattern.compile("(?:para|destino)\\s+([A-Za-zÀ-ÿ\\s]+)", Pattern.CASE_INSENSITIVE)
@@ -47,7 +45,6 @@ class NotificationListener : NotificationListenerService() {
         sbn?.let { notification ->
             val packageName = notification.packageName
             
-            // Verifica se é um app que queremos monitorar
             if (TARGET_APPS.containsKey(packageName)) {
                 val extras = notification.notification.extras
                 
@@ -62,7 +59,6 @@ class NotificationListener : NotificationListenerService() {
                 Log.d(TAG, "Notificação detectada: $packageName")
                 Log.d(TAG, "Conteúdo: $fullText")
                 
-                // Extrai os dados
                 val price = extractPrice(fullText)
                 val distance = extractDistance(fullText)
                 val destination = extractDestination(fullText)
@@ -70,7 +66,6 @@ class NotificationListener : NotificationListenerService() {
                 val rating = extractRating(fullText)
                 val appName = TARGET_APPS[packageName] ?: packageName
                 
-                // Verifica se encontrou dados relevantes
                 if (price != null || distance != null) {
                     val data = Bundle().apply {
                         putString("app", appName)
@@ -93,7 +88,6 @@ class NotificationListener : NotificationListenerService() {
     }
     
     override fun onNotificationRemoved(sbn: StatusBarNotification?) {
-        // Opcional: notificar quando notificação for removida
         sbn?.let {
             val packageName = it.packageName
             if (TARGET_APPS.containsKey(packageName)) {
@@ -150,9 +144,5 @@ class NotificationListener : NotificationListenerService() {
             Log.d(TAG, "Avaliação encontrada: $rating")
             rating
         } else null
-    }
-    
-    override fun onInterrupt() {
-        Log.d(TAG, "Serviço interrompido")
     }
 }
