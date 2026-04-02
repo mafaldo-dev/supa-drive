@@ -50,7 +50,7 @@ class SupaDriverModule(reactContext: ReactApplicationContext) :
             notificationManager.notify(notificationId, notification)
             promise.resolve(true)
         } catch (e: Exception) {
-            promise.reject("NOTIFICATION_ERROR", e.message)
+            promise.reject("NOTIFICATION_ERROR", e.message, e)
         }
     }
 
@@ -64,7 +64,16 @@ class SupaDriverModule(reactContext: ReactApplicationContext) :
         
         sendLocalNotification("Jornada Encerrada! 🎉", body, object : Promise {
             override fun resolve(value: Any?) {}
-            override fun reject(code: String?, message: String?, cause: Throwable?) {}
+            override fun reject(code: String?, message: String?, throwable: Throwable?, userInfo: WritableMap?) {}
+            override fun reject(code: String, message: String?) = reject(code, message, null, null)
+            override fun reject(code: String, throwable: Throwable?) = reject(code, throwable?.message, throwable, null)
+            override fun reject(code: String, message: String?, throwable: Throwable?) = reject(code, message, throwable, null)
+            override fun reject(throwable: Throwable) = reject(null, throwable.message, throwable, null)
+            override fun reject(throwable: Throwable, userInfo: WritableMap) = reject(null, throwable.message, throwable, userInfo)
+            override fun reject(code: String, userInfo: WritableMap) = reject(code, null, null, userInfo)
+            override fun reject(code: String, throwable: Throwable?, userInfo: WritableMap) = reject(code, throwable?.message, throwable, userInfo)
+            override fun reject(code: String, message: String?, userInfo: WritableMap) = reject(code, message, null, userInfo)
+            override fun reject(message: String) = reject(null, message, null, null)
         })
         
         sendEvent("journeyEnd", mapOf(
@@ -104,7 +113,16 @@ class SupaDriverModule(reactContext: ReactApplicationContext) :
             "Você já está dirigindo há 4 horas. Hora de fazer uma pausa!", 
             object : Promise {
                 override fun resolve(value: Any?) {}
-                override fun reject(code: String?, message: String?, cause: Throwable?) {}
+                override fun reject(code: String?, message: String?, throwable: Throwable?, userInfo: WritableMap?) {}
+                override fun reject(code: String, message: String?) = reject(code, message, null, null)
+                override fun reject(code: String, throwable: Throwable?) = reject(code, throwable?.message, throwable, null)
+                override fun reject(code: String, message: String?, throwable: Throwable?) = reject(code, message, throwable, null)
+                override fun reject(throwable: Throwable) = reject(null, throwable.message, throwable, null)
+                override fun reject(throwable: Throwable, userInfo: WritableMap) = reject(null, throwable.message, throwable, userInfo)
+                override fun reject(code: String, userInfo: WritableMap) = reject(code, null, null, userInfo)
+                override fun reject(code: String, throwable: Throwable?, userInfo: WritableMap) = reject(code, throwable?.message, throwable, userInfo)
+                override fun reject(code: String, message: String?, userInfo: WritableMap) = reject(code, message, null, userInfo)
+                override fun reject(message: String) = reject(null, message, null, null)
             })
     }
 
