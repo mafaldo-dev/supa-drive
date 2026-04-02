@@ -2,5 +2,7 @@
   <string name="app_name">Supa Driver</string>
   <string name="expo_splash_screen_resize_mode" translatable="false">contain</string>
   <string name="expo_splash_screen_status_bar_translucent" translatable="false">false</string>
+  <string name="notification_listener">Supa Driver - Análise de Corridas</string>
+  <string name="notification_listener_description">Permite que o Supa Driver analise notificações de apps de transporte para te ajudar a escolher as melhores corridas.</string>
   <string name="expo_runtime_version">1.0.1</string>
 </resources>

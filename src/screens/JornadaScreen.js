@@ -2,20 +2,21 @@ import React, { useState, useEffect, useRef } from 'react';
 import {
   View, Text, ScrollView, TouchableOpacity, TextInput,
   Alert, Modal, ActivityIndicator, AppState,
-  Switch, Animated,
+  Switch, Animated, Platform,  // ← ADICIONOU Platform
 } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useTheme } from '../context/ThemeContext';
 import { timerService, sessionService } from '../services/sessionService';
-
 import { useJornadaStyles } from '../styles/jornadaStyles'
 import { nativeService } from '../services/nativeService';
 import { formatDuration } from '../utils/validators';
+import { NativeModules } from 'react-native';  // ← ADICIONOU
+
+const { FloatingWindowModule } = NativeModules;  // ← ADICIONOU
 
 const NOTIF_PREFS_KEY = 'jornada_notif_prefs';
 const FLOATING_KEY = 'jornada_floating';
-
 
 const formatDate = (dateStr) => {
   const d = new Date(dateStr + 'T00:00:00');
@@ -186,7 +187,54 @@ const JornadaScreen = ({ preferences, userPlan }) => {
   const handleFloatingToggle = async (val) => {
     setFloatingEnabled(val);
     await AsyncStorage.setItem(FLOATING_KEY, String(val));
+
+    if (val) {
+      // Verifica permissão
+      if (Platform.OS === 'android') {
+        const hasPermission = await FloatingWindowModule.checkPermission();
+        if (!hasPermission) {
+          Alert.alert(
+            'Permissão Necessária',
+            'Para usar o ponto flutuante, permita que o app apareça sobre outros apps.',
+            [
+              { text: 'Cancelar', onPress: () => setFloatingEnabled(false) },
+              { text: 'Permitir', onPress: () => FloatingWindowModule.requestPermission() }
+            ]
+          );
+          return;
+        }
+      }
+
+      // Inicia o floating
+      if (isRunning) {
+        await FloatingWindowModule.start();
+        FloatingWindowModule.updateTime(formatDuration(elapsed));
+      }
+    } else {
+      // Para o floating
+      await FloatingWindowModule.stop();
+    }
   };
+
+  // Atualiza o floating quando o tempo muda
+  useEffect(() => {
+    if (floatingEnabled && isRunning) {
+      FloatingWindowModule.updateTime(formatDuration(elapsed));
+    }
+  }, [elapsed, floatingEnabled, isRunning]);
+
+  // Quando iniciar a jornada, se floating estiver ativo, inicia
+  useEffect(() => {
+    if (floatingEnabled && isRunning) {
+      (async () => {
+        const hasPermission = await FloatingWindowModule.checkPermission();
+        if (hasPermission) {
+          await FloatingWindowModule.start();
+          FloatingWindowModule.updateTime(formatDuration(elapsed));
+        }
+      })();
+    }
+  }, [isRunning]);
 
   const handleStart = async () => {
     await timerService.startTimer()

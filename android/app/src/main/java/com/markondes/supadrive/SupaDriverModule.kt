@@ -142,3 +142,61 @@ class SupaDriverModule(reactContext: ReactApplicationContext) :
         }
     }
 }
+
+@ReactMethod
+fun sendLocalNotification(title: String, body: String, promise: Promise) {
+    try {
+        val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        val channelId = "supa_driver_channel"
+        val notificationId = System.currentTimeMillis().toInt()
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val channel = android.app.NotificationChannel(
+                channelId,
+                "Supa Driver",
+                NotificationManager.IMPORTANCE_HIGH
+            )
+            notificationManager.createNotificationChannel(channel)
+        }
+
+        val intent = context.packageManager.getLaunchIntentForPackage(context.packageName)
+        val pendingIntent = android.app.PendingIntent.getActivity(
+            context, 0, intent,
+            android.app.PendingIntent.FLAG_UPDATE_CURRENT or android.app.PendingIntent.FLAG_IMMUTABLE
+        )
+
+        val notification = NotificationCompat.Builder(context, channelId)
+            .setContentTitle(title)
+            .setContentText(body)
+            .setSmallIcon(android.R.drawable.ic_dialog_info)
+            .setContentIntent(pendingIntent)
+            .setAutoCancel(true)
+            .build()
+
+        notificationManager.notify(notificationId, notification)
+        promise.resolve(true)
+    } catch (e: Exception) {
+        promise.reject("NOTIFICATION_ERROR", e.message, e)
+    }
+}
+
+@ReactMethod
+fun isAccessibilityEnabled(promise: Promise) {
+    try {
+        val enabled = android.provider.Settings.Secure.getInt(
+            context.contentResolver,
+            android.provider.Settings.Secure.ACCESSIBILITY_ENABLED,
+            0
+        ) == 1
+        promise.resolve(enabled)
+    } catch (e: Exception) {
+        promise.reject("ACCESSIBILITY_ERROR", e.message, e)
+    }
+}
+
+@ReactMethod
+fun openAccessibilitySettings() {
+    val intent = Intent(android.provider.Settings.ACTION_ACCESSIBILITY_SETTINGS)
+    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+    context.startActivity(intent)
+}

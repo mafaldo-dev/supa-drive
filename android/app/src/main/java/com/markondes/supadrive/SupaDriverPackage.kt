@@ -7,7 +7,11 @@ import com.facebook.react.uimanager.ViewManager
 
 class SupaDriverPackage : ReactPackage {
     override fun createNativeModules(reactContext: ReactApplicationContext): List<NativeModule> {
-        return listOf(SupaDriverModule(reactContext))
+        return listOf(
+            SupaDriverModule(reactContext),
+            FloatingWindowModule(reactContext),
+            NotificationListenerModule(reactContext)
+        )
     }
 
     override fun createViewManagers(reactContext: ReactApplicationContext): List<ViewManager<*, *>> {

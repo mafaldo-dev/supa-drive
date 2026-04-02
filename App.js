@@ -21,6 +21,7 @@ import FloatingTimer from './src/components/FloatingTimer';
 import TrafficModal from './src/modals/TrafficModal';
 import PlanModal from './src/modals/PlanModal';
 import PixPaymentScreen from './src/screens/PixPaymentScreen';
+import RideAnalyzer from './src/components/RideAnalyzer';
 
 // Telas
 import LoginScreen from './src/screens/LoginScreen';
@@ -36,12 +37,14 @@ import JornadaScreen from './src/screens/JornadaScreen';
 import ResumoSemanalScreen from './src/screens/ResumoSemanalScreen';
 import SemaforoScreen from './src/screens/SemaforoScreen';
 
+
 // Serviços e Utils
 import { checkSavedLogin, saveUserPlan } from './src/services/authService';
 import { useGlobalStyles } from './src/styles/useGlobalStyles';
 import { useTheme } from './src/context/ThemeContext';
 import { useDriverSettings } from './src/hooks/useSubscription';
 import { timerService } from './src/services/sessionService';
+
 
 export default function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
