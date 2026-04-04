@@ -8,28 +8,22 @@ import android.content.Context
 import android.content.Intent
 import android.graphics.PixelFormat
 import android.os.Build
-import android.os.Handler
 import android.os.IBinder
-import android.os.Looper
 import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.MotionEvent
 import android.view.View
 import android.view.WindowManager
 import android.widget.ImageView
-import android.widget.TextView
 import androidx.core.app.NotificationCompat
 
 class FloatingWindowService : Service() {
 
     private lateinit var windowManager: WindowManager
     private lateinit var floatingView: View
-    private lateinit var iconImage: ImageView
-    private lateinit var timerText: TextView
     private var isViewAdded = false
     private var initialX = 100
     private var initialY = 200
-    private var isTimerVisible = false
 
     companion object {
         private var instance: FloatingWindowService? = null
@@ -50,10 +44,6 @@ class FloatingWindowService : Service() {
             context.stopService(intent)
             instance = null
         }
-
-        fun updateTime(time: String) {
-            instance?.updateTimerText(time)
-        }
     }
 
     override fun onCreate() {
@@ -67,12 +57,8 @@ class FloatingWindowService : Service() {
     private fun createFloatingView() {
         windowManager = getSystemService(WINDOW_SERVICE) as WindowManager
 
-        // Infla o layout
         floatingView = LayoutInflater.from(this).inflate(R.layout.floating_window, null)
-        iconImage = floatingView.findViewById(R.id.icon_image)
-        timerText = floatingView.findViewById(R.id.timer_text)
 
-        // Configura o layout params da janela flutuante (apenas o botão, não a tela toda)
         val params = WindowManager.LayoutParams(
             WindowManager.LayoutParams.WRAP_CONTENT,
             WindowManager.LayoutParams.WRAP_CONTENT,
@@ -91,36 +77,48 @@ class FloatingWindowService : Service() {
         windowManager.addView(floatingView, params)
         isViewAdded = true
 
-        setupDragListener(params)
-        setupClickToReturn()
+        setupDragAndClick()
     }
 
-    private fun setupDragListener(params: WindowManager.LayoutParams) {
-        var initialTouchX = 0
-        var initialTouchY = 0
+    private fun setupDragAndClick() {
+        var initialTouchX = 0f
+        var initialTouchY = 0f
         var initialParamsX = 0
         var initialParamsY = 0
+        var isDragging = false
+        val touchSlop = 10 // pixels
 
         floatingView.setOnTouchListener { _, event ->
             when (event.action) {
                 MotionEvent.ACTION_DOWN -> {
-                    initialTouchX = event.rawX.toInt()
-                    initialTouchY = event.rawY.toInt()
-                    initialParamsX = params.x
-                    initialParamsY = params.y
+                    initialTouchX = event.rawX
+                    initialTouchY = event.rawY
+                    initialParamsX = (floatingView.layoutParams as WindowManager.LayoutParams).x
+                    initialParamsY = (floatingView.layoutParams as WindowManager.LayoutParams).y
+                    isDragging = false
                     true
                 }
                 MotionEvent.ACTION_MOVE -> {
-                    val deltaX = event.rawX.toInt() - initialTouchX
-                    val deltaY = event.rawY.toInt() - initialTouchY
-                    params.x = initialParamsX + deltaX
-                    params.y = initialParamsY + deltaY
-                    windowManager.updateViewLayout(floatingView, params)
+                    val deltaX = (event.rawX - initialTouchX).toInt()
+                    val deltaY = (event.rawY - initialTouchY).toInt()
+                    
+                    if (Math.abs(deltaX) > touchSlop || Math.abs(deltaY) > touchSlop) {
+                        isDragging = true
+                    }
+                    
+                    if (isDragging) {
+                        val params = floatingView.layoutParams as WindowManager.LayoutParams
+                        params.x = initialParamsX + deltaX
+                        params.y = initialParamsY + deltaY
+                        windowManager.updateViewLayout(floatingView, params)
+                    }
                     true
                 }
                 MotionEvent.ACTION_UP -> {
-                    initialX = params.x
-                    initialY = params.y
+                    if (!isDragging) {
+                        // Foi um clique, não um arrasto
+                        openApp()
+                    }
                     true
                 }
                 else -> false
@@ -128,24 +126,16 @@ class FloatingWindowService : Service() {
         }
     }
 
-    private fun setupClickToReturn() {
-        floatingView.setOnClickListener {
-            // Abre o app quando clicar no floating
+    private fun openApp() {
+        try {
             val intent = packageManager.getLaunchIntentForPackage(packageName)
-            intent?.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-            startActivity(intent)
-            
-            // Minimiza o floating? Não, só abre o app
+            intent?.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_REORDER_TO_FRONT)
+            if (intent != null) {
+                startActivity(intent)
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
         }
-    }
-
-    private fun updateTimerText(time: String) {
-        // Mostra o timer quando a jornada começar
-        if (!isTimerVisible && time != "00:00:00") {
-            timerText.visibility = View.VISIBLE
-            isTimerVisible = true
-        }
-        timerText.text = time
     }
 
     private fun createNotificationChannel() {
