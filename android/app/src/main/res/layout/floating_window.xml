@@ -1,34 +1,31 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="wrap_content"
-    android:layout_height="wrap_content"
+    android:layout_width="56dp"
+    android:layout_height="56dp"
     android:background="@drawable/floating_bg"
-    android:padding="12dp"
-    android:alpha="0.4">
+    android:gravity="center"
+    android:clickable="true"
+    android:focusable="true">
     
-    <LinearLayout
+    <ImageView
+        android:id="@+id/icon_image"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:layout_centerInParent="true"
+        android:src="@mipmap/ic_launcher"
+        android:contentDescription="Supa Driver" />
+    
+    <TextView
+        android:id="@+id/timer_text"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:gravity="center_vertical">
-        
-        <TextView
-            android:id="@+id/timer_text"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="00:00:00"
-            android:textColor="#FFFFFF"
-            android:textSize="18sp"
-            android:textStyle="bold"
-            android:fontFamily="monospace" />
-            
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text=" ⏱️"
-            android:textColor="#FFFFFF"
-            android:textSize="14sp" />
-            
-    </LinearLayout>
+        android:layout_below="@id/icon_image"
+        android:layout_centerHorizontal="true"
+        android:text="00:00:00"
+        android:textColor="#FFFFFF"
+        android:textSize="10sp"
+        android:textStyle="bold"
+        android:fontFamily="monospace"
+        android:visibility="gone" />
     
 </RelativeLayout>
