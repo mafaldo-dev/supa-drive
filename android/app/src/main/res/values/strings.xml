@@ -5,4 +5,5 @@
   <string name="notification_listener">Supa Driver - Análise de Corridas</string>
   <string name="notification_listener_description">Permite que o Supa Driver analise notificações de apps de transporte para te ajudar a escolher as melhores corridas.</string>
   <string name="expo_runtime_version">1.0.1</string>
+  <string name="accessibility_description">O Supa Driver monitora corridas do Uber e 99 para ativar o Semáforo Inteligente e ajudar você a aceitar apenas corridas que valem a pena.</string>
 </resources>
