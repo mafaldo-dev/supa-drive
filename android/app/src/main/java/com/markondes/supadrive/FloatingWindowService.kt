@@ -44,6 +44,10 @@ class FloatingWindowService : Service() {
             context.stopService(intent)
             instance = null
         }
+
+        fun updateTime(time: String) {
+            // Método mantido para compatibilidade com FloatingWindowModule
+        }
     }
 
     override fun onCreate() {
