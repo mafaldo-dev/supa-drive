@@ -48,7 +48,6 @@ const DrawerMenu = ({ visible, onClose, onNavigate, user, userPlan }) => {
     { id: 'semaforo', icon: 'traffic', label: 'Semáforo Inteligente', premium: true },
     { id: 'jornada', icon: 'directions-car', label: 'Jornada' },
     { id: 'corridas', icon: 'history', label: 'Histórico' },
-    { id: 'resumo', icon: 'bar-chart', label: 'Resumo', premium: true },
   ];
 
   const extraItems = [

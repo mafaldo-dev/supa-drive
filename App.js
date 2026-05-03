@@ -21,7 +21,7 @@ import FloatingTimer from './src/components/FloatingTimer';
 import TrafficModal from './src/modals/TrafficModal';
 import PlanModal from './src/modals/PlanModal';
 import PixPaymentScreen from './src/screens/PixPaymentScreen';
-import RideAnalyzer from './src/components/RideAnalyzer';
+
 
 // Telas
 import LoginScreen from './src/screens/LoginScreen';
@@ -34,12 +34,12 @@ import SuporteScreen from './src/screens/SuporteScreen';
 import ContaScreen from './src/screens/ContaScreen';
 import PreferenciasScreen from './src/screens/PreferenciasScreen';
 import JornadaScreen from './src/screens/JornadaScreen';
-import ResumoSemanalScreen from './src/screens/ResumoSemanalScreen';
 import SemaforoScreen from './src/screens/SemaforoScreen';
 
 
 // Serviços e Utils
 import { checkSavedLogin, saveUserPlan } from './src/services/authService';
+import { subscriptionService } from './src/services/apiService';
 import { useGlobalStyles } from './src/styles/useGlobalStyles';
 import { useTheme } from './src/context/ThemeContext';
 import { useDriverSettings } from './src/hooks/useSubscription';
@@ -96,10 +96,18 @@ export default function App() {
     NavigationBar.setBehaviorAsync("overlay-swipe");
   }, []);
 
-  // Auto-carrega preferências assim que logar
+  // Auto-carrega preferências e verifica plano assim que logar
   useEffect(() => {
     if (isLoggedIn) {
       refreshSettings();
+      // Verifica plano no backend e atualiza estado
+      subscriptionService.checkSubscriptionStatus().then(status => {
+        if (status?.active) {
+          saveUserPlan('premium', setUserPlan);
+        } else {
+          saveUserPlan('free', setUserPlan);
+        }
+      }).catch(() => {});
     }
   }, [isLoggedIn]);
 
@@ -224,7 +232,6 @@ export default function App() {
       case 'conta':         return <ContaScreen user={user} userPlan={userPlan} onLogout={() => handleNavigate('logout')} onUpgradeClick={() => setShowPaymentScreen(true)} />;
       case 'preferencias':  return <PreferenciasScreen navigation={{ goBack: handleBackFromPreferences }} />;
       case 'jornada':       return <JornadaScreen preferences={preferences} userPlan={userPlan} />;
-      case 'resumo':        return <ResumoSemanalScreen preferences={preferences} />;
       case 'corridas':      return <CorridasScreen />;
       default: return (
         <HomeScreen

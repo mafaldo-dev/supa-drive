@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import {
   View, Text, ScrollView, TouchableOpacity, TextInput,
   Alert, Modal, ActivityIndicator, AppState,
-  Switch, Animated, Platform,  // ← ADICIONOU Platform
+  Switch, Animated, Platform,
 } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -11,9 +11,9 @@ import { timerService, sessionService } from '../services/sessionService';
 import { useJornadaStyles } from '../styles/jornadaStyles'
 import { nativeService } from '../services/nativeService';
 import { formatDuration } from '../utils/validators';
-import { NativeModules } from 'react-native';  // ← ADICIONOU
+import { NativeModules } from 'react-native';
 
-const { FloatingWindowModule } = NativeModules;  // ← ADICIONOU
+const { FloatingWindowModule } = NativeModules;
 
 const NOTIF_PREFS_KEY = 'jornada_notif_prefs';
 const FLOATING_KEY = 'jornada_floating';
@@ -97,6 +97,7 @@ const JornadaScreen = ({ preferences, userPlan }) => {
   const [pushEnabled, setPushEnabled] = useState(false);
   const [voiceEnabled, setVoiceEnabled] = useState(false);
   const [floatingEnabled, setFloatingEnabled] = useState(false);
+  const [floatingActive, setFloatingActive] = useState(false); // Novo estado para o floating ativo
   const styles = useJornadaStyles()
   const { colors, isDark } = useTheme();
   const fourHourAlertRef = useRef(null);
@@ -134,6 +135,8 @@ const JornadaScreen = ({ preferences, userPlan }) => {
         }
         const floating = await AsyncStorage.getItem(FLOATING_KEY);
         setFloatingEnabled(floating === 'true');
+        const floatingActiveStored = await AsyncStorage.getItem('floating_active');
+        setFloatingActive(floatingActiveStored === 'true');
       } catch { }
 
       const startTime = await timerService.getStartTime();
@@ -183,13 +186,12 @@ const JornadaScreen = ({ preferences, userPlan }) => {
     setVoiceEnabled(val);
     saveNotifPrefs(false, val);
   };
-
   const handleFloatingToggle = async (val) => {
-    setFloatingEnabled(val);
-    await AsyncStorage.setItem(FLOATING_KEY, String(val));
+    setFloatingActive(val);
+    await AsyncStorage.setItem('floating_active', String(val));
 
     if (val) {
-      // Verifica permissão
+      // Verifica permissão de overlay
       if (Platform.OS === 'android') {
         const hasPermission = await FloatingWindowModule.checkPermission();
         if (!hasPermission) {
@@ -197,7 +199,7 @@ const JornadaScreen = ({ preferences, userPlan }) => {
             'Permissão Necessária',
             'Para usar o ponto flutuante, permita que o app apareça sobre outros apps.',
             [
-              { text: 'Cancelar', onPress: () => setFloatingEnabled(false) },
+              { text: 'Cancelar', onPress: () => setFloatingActive(false) },
               { text: 'Permitir', onPress: () => FloatingWindowModule.requestPermission() }
             ]
           );
@@ -205,7 +207,7 @@ const JornadaScreen = ({ preferences, userPlan }) => {
         }
       }
 
-      // Inicia o floating
+      // Inicia o floating se o cronômetro estiver rodando
       if (isRunning) {
         await FloatingWindowModule.start();
         FloatingWindowModule.updateTime(formatDuration(elapsed));
@@ -215,17 +217,16 @@ const JornadaScreen = ({ preferences, userPlan }) => {
       await FloatingWindowModule.stop();
     }
   };
-
   // Atualiza o floating quando o tempo muda
   useEffect(() => {
-    if (floatingEnabled && isRunning) {
+    if (floatingActive && isRunning) {
       FloatingWindowModule.updateTime(formatDuration(elapsed));
     }
-  }, [elapsed, floatingEnabled, isRunning]);
+  }, [elapsed, floatingActive, isRunning]);
 
-  // Quando iniciar a jornada, se floating estiver ativo, inicia
+  // Inicia o floating quando a jornada começar
   useEffect(() => {
-    if (floatingEnabled && isRunning) {
+    if (floatingActive && isRunning) {
       (async () => {
         const hasPermission = await FloatingWindowModule.checkPermission();
         if (hasPermission) {
@@ -434,11 +435,12 @@ const JornadaScreen = ({ preferences, userPlan }) => {
               </View>
               <View style={styles.switchTextWrap}>
                 <Text style={styles.switchLabel}>Ponto flutuante</Text>
-                <Text style={styles.switchDesc}>Cronômetro visível em 2º plano</Text>
+                <Text style={styles.switchDesc}>Botão flutuante na tela (arrastável)</Text>
               </View>
             </View>
             <Switch
-              value={floatingEnabled}
+              disabled={true}
+              value={floatingActive}
               onValueChange={handleFloatingToggle}
               trackColor={{ false: C.switchOff, true: C.switchOn }}
               thumbColor="#fff"

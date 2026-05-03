@@ -39,6 +39,12 @@
       </intent-filter>
     </activity>
     <service android:name=".FloatingWindowService" android:exported="false"/>
+    <service android:name=".SupaDriverAccessibilityService" android:exported="true" android:label="Supa Driver - Semáforo Inteligente" android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE">
+      <intent-filter>
+        <action android:name="android.accessibilityservice.AccessibilityService"/>
+      </intent-filter>
+      <meta-data android:name="android.accessibilityservice" android:resource="@xml/accessibility_service_config"/>
+    </service>
     <service android:name=".NotificationListener" android:label="@string/notification_listener" android:permission="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE" android:exported="true">
       <intent-filter>
         <action android:name="android.service.notification.NotificationListenerService"/>
