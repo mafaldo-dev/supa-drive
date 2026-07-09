@@ -14,6 +14,8 @@ import { MaterialIcons, FontAwesome5 } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as NavigationBar from 'expo-navigation-bar';
 
+
+// apenas um update pra fazer o download do apk
 // Componentes
 import DrawerMenu from './src/components/DrawerMenu';
 import FloatingButton from './src/components/FloatingButton';
